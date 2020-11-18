@@ -89,27 +89,27 @@ datos.agrupados.fecha <- agrupar_datos(datos.filtrado, "fecha", "num_casos")
 # Lo convertimos a tipo de dato Date (en lugar de factor)
 datos.agrupados.fecha[, "fecha"] <- as.Date(datos.agrupados.fecha[, "fecha"])
 
-imprimir_grafica <- function(datos, eje.x, eje.y, divisiones, color) {
+imprimir_grafica <- function(datos, eje.x, eje.y, divisiones, color, segmentos = FALSE) {
   par(mar=c(11,4,4,1), xaxt = "n")
   grafico.lineas <- plot(x = datos[, eje.x], y = datos[, eje.y], type = "l", 
-                         main = "Evolucion del numero de casos COVID-19", 
-                         xlab = "", ylab = "Numero de casos", font.lab = 2, 
+                         main = "EVOLUCION NUMERO DE CASOS COVID-19", 
+                         xlab = "", ylab = "NUMERO DE CASOS", font.lab = 2, 
                          col = color, las = 2, lwd = 2)
   par(xaxt = "s")
   sec <- seq(datos[1, eje.x], datos[nrow(datos[eje.x]), eje.x], 
              by = divisiones)
   
   axis.Date(1, at = sec, format = "%Y-%m-%d", las = 2)
-  abline(v = sec, lty=2)
-  points(x = subset(datos, datos[, eje.x] %in% sec), pch = 20)
   
-  mtext(text = "Fecha",
-        side = 1,
-        line = 6,
-        font = 2)
+  if (segmentos == TRUE) {
+    segments(sec, 0, sec, subset(datos, datos[, eje.x] %in% sec)[, eje.y],
+             lty = 2)
+    points(x = subset(datos, datos[, eje.x] %in% sec), pch = 20)
+  }
+  mtext(text = "FECHA", side = 1, line = 6, font = 2)
 }
 # Prueba imprimir_grafica
-imprimir_grafica(datos.agrupados.fecha, "fecha", "num_casos", 20, "red")
+imprimir_grafica(datos.agrupados.fecha, "fecha", "num_casos", 15, "red", TRUE)
 
 # apartado d)
 casos.por.columnas <- agrupar_datos(datos.filtrado, "fecha", c("num_casos", "num_casos_prueba_pcr", "num_casos_prueba_test_ac", "num_casos_prueba_otras", "num_casos_prueba_desconocida"))
@@ -123,7 +123,7 @@ imprimir_multiples_lineas <- function(datos, eje.x, eje.y, paleta) {
   }, eje.y, paleta)
   
   eje.y <- lapply(gsub('_', ' ', eje.y), toupper)
-  legend(x= "top",  legend = eje.y, fill = paleta, cex = 0.50, text.font = 2)
+  legend(x= "topright",  legend = eje.y, fill = paleta, cex = 0.50, text.font = 2)
 }
 
 # Prueba imprimir_multiples_lineas
@@ -201,7 +201,12 @@ rownames(matriz.frecuencias) <- c("1", "1-f1", "2", "1-f2", "3", "1-f3", "4", "1
 colnames(matriz.frecuencias) <- c("S1", "S2", "S3", "S4", "S5", "S6", "S7")
 
 # apartado c)
-barplot(matriz.frecuencias, col = c("black", "white"))
+par(xpd = TRUE, mar = par()$mar + c(0,0,0,4))
+barplot(matriz.frecuencias, col = c("black", "white"), 
+        main = "EVOLUCION SENSACION DE ARDOR CON EL TIEMPO")
+legend(x= "topright",  legend = c("FREC. ARDOR", "FREC. SIN ARDOR"), 
+       inset = c(-0.3, 0), fill = c("black", "white"), 
+       cex = 0.6, text.font = 2, bg = 'white')
 
 # apartado d)
 mostrar_frecuencias <- function(matriz, ancho, espacio) {
@@ -210,19 +215,18 @@ mostrar_frecuencias <- function(matriz, ancho, espacio) {
           space = espacio, xaxt = "n", yaxt = "n",
           ylab = "PUNTUACION", cex.lab = 1.25)
   
-  pos_inicial <- espacio + ancho/2
+  pos_inicial <- ancho / 2 + espacio
   longitud <- length(colnames(matriz)) - 1
-  v <- Reduce(function(v, x) v + 2 * ancho/2 + espacio, x=numeric(longitud),  
+  v <- Reduce(function(v, x) v + 2 * ancho / 2 + espacio, x=numeric(longitud),  
               init=pos_inicial, accumulate=TRUE)
-  axis(side = 3, at = v, colnames(matriz), col.axis = "blue", font = 2)
-  mtext("SEMANAS", side = 3, line = 2.2, cex = 1.25)
+  axis(side = 3, at = v, colnames(matriz), col.axis = "blue", font = 2, tick = FALSE)
   
   pos_inicial_2 <- ancho / 2
   longitud_2 <- length(row.names(matriz)) / 2 - 1
-  w <- Reduce(function(w, x) w + 2 * ancho/2, x=numeric(longitud_2),
+  w <- Reduce(function(w, x) w + 2 * pos_inicial_2, x=numeric(longitud_2),
               init=pos_inicial_2, accumulate=TRUE)
   axis(side = 2, at = w, row.names(matriz)[seq(1,length(row.names(matriz)),2)], 
-       col.axis = "blue", cex = 125, font = 2)
+       col.axis = "blue", cex = 125, font = 2, tick = FALSE)
   
   title("FRECUENCIAS DE ARDOR DE HIDROGEL - SEMANAS 1 A LA 7", line = 4, cex.main = 1.25)
   legend(x= "topright",  legend = c("FREC. ARDOR", "FREC. SIN ARDOR"), 
