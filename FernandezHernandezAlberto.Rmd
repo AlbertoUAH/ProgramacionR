@@ -12,21 +12,23 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+__NOTA__: salvo determinados apartados, la solución a cada uno de los ejercicios se ha llevado a cabo por medio de funciones definidas, integrando el código en una misma estructura.
+
 ## Pregunta 1. Un boleto del sorteo de la ONCE consta de dos partes, la primera es un número de 4 dígitos y la segunda es un número de tres dígitos que forman la serie del boleto. 
 
 Aquí consideramos sólo el número, por ejemplo, 0209. Se pide:
 
 ### a) Genera todos los números que entran en el sorteo de la ONCE y mostrarlos con los cuatro dígitos.
 
-Para generar todos los posibles números de cuatro dígitos, debemos pensar en todas las posibilidades de combinación. Dado que cada casilla puede valer un número comprendido entre 0 y 9, pudiendo repetirse en más de una ocasión, nos encontramos ante una __variación con repetición__ . Por tanto, el número de posibles combinaciones es de:
+Para generar todos los posibles números de cuatro dígitos, debemos pensar en todas las posibilidades de combinación. Dado que cada casilla puede valer un número comprendido entre 0 y 9, pudiendo repetirse en más de una ocasión, nos encontramos ante una __variación con repetición__. Por tanto, el número de posibles combinaciones es de:
 
 $$
 \begin{aligned}
-10  x  10  x  10  x \space 10 = 10^4 = 10000
+10 * 10 * 10 * 10 = 10^4 = 10000
 \end{aligned}
 $$
 
-Considerando lo anterior, crearemos una función denominada __generar_boletos__ , cuyo único parámetro será el número de dígitos que forman la serie. En primer lugar, dado que cada número se puede repetir num_digitos veces (una por cada posición), repetiremos la lista de posibles números (0-9) tantas veces como dígitos tenga el número. Finalmente, mediante la función _expand.grid_ se genera un DataFrame con todas las posibles combinaciones a partir del vector anterior (de cara al apartado b):
+Considerando lo anterior, crearemos una función denominada __generar_boletos__, cuyo único parámetro será el número de dígitos que forman la serie. En primer lugar, dado que cada número se puede repetir num_digitos veces (una por cada posición), repetiremos la lista de posibles números (0-9) tantas veces como dígitos tenga el número. Finalmente, mediante la función _expand.grid_ se genera un DataFrame con todas las posibles combinaciones a partir del vector anterior (de cara al apartado b):
 
 ```{r funcion generar_boletos}
 generar_boletos <- function(num.digitos) {
@@ -48,13 +50,13 @@ tail(df.combinaciones.sorteo)
 nrow(df.combinaciones.sorteo)
 ```
 
-Como podemos comprobar, el número de filas del DataFrame coincide con el número de posibles combinaciones (10000). Por otro lado, si comprobamos cuántas filas hay únicas (mediante la función _unique_ , vemos que también coincide con el total de filas):
+Como podemos comprobar, el número de filas del DataFrame coincide con el número de posibles combinaciones (10000). Por otro lado, si comprobamos cuántas filas hay únicas (mediante la función _unique_, vemos que también coincide con el total de filas):
 
 ```{r numero de filas unicas}
 nrow(unique(df.combinaciones.sorteo))
 ```
 
-Por último, si deseamos recuperar el total de combinaciones con los cuatro dígitos concatenados, mediante un apply aplicamos, a cada fila del DataFrame, la función _paste_ , concatenando cada fila en una única cadena:
+Por último, si deseamos recuperar el total de combinaciones con los cuatro dígitos concatenados, mediante un _apply_ aplicamos, a cada fila del DataFrame, la función _paste_, concatenando cada fila en una única cadena:
 
 ```{r vector_combinaciones}
 vector.combinaciones <- apply(df.combinaciones.sorteo, 1, paste, collapse = "")
@@ -63,7 +65,7 @@ head(vector.combinaciones, 50)
 ```
 
 ### b) ¿Cuál es la suma de los números de un boleto que más se repite?
-En primer lugar, para calcular la suma de los dígitos, y dado que se encuentran almacenados en un DataFrame, utilizaremos nuevamente la función _apply_ , aplicando a nivel de fila la suma de todas sus columnas:
+En primer lugar, para calcular la suma de los dígitos, y dado que se encuentran almacenados en un DataFrame, utilizaremos nuevamente la función _apply_, aplicando a nivel de fila la suma de todas sus columnas:
 
 ```{r suma columnas combinaciones}
 suma.combinaciones <- apply(df.combinaciones.sorteo, 1, sum)
@@ -72,7 +74,7 @@ suma.combinaciones <- apply(df.combinaciones.sorteo, 1, sum)
 suma.combinaciones[1:20]
 ```
 
-Por desgracia, R no dispone de una función que permita calcular la moda, por lo que habrá que diseñarla desde cero, pasando como parámetro el vector anterior con las sumas de cada combinación. Desde esta función crearemos, en primer lugar, un vector auxiliar que contenga valores únicos del vector pasado por parámetro. A continuación, de dicho vector calcularemos el número de repeticiones por cada suma, mediante la función _tabulate_ .No obstante, y dado que tabulate no cuenta el número de veces que se repite el cero, debemos sumar 1 a cada elemento, de forma que el cero si pueda ser contado. De dicho vector, obtendremos el índice de la suma con mayor número de repeticiones ( _which.max_ ), para finalmente recuperar su correspondiente valor:
+Por desgracia, R no dispone de una función que permita calcular la moda, por lo que habrá que diseñarla desde cero, pasando como parámetro el vector anterior con las sumas de cada combinación. Desde esta función creamos, en primer lugar, un vector auxiliar que contenga valores únicos del vector pasado por parámetro. A continuación, obtenemos el número de repeticiones por cada suma, mediante la función _tabulate_. No obstante, y dado que _tabulate_ no cuenta el número de veces que se repite el cero, debemos sumar 1 a cada elemento, de forma que el cero si pueda ser contado. De dicho vector obtenemos el índice de la suma con mayor número de repeticiones ( _which.max_ ), para finalmente recuperar su correspondiente valor:
 
 ```{r funcion moda}
 moda <- function(vector.suma) {
@@ -85,7 +87,7 @@ Una vez definida la función, realizamos la correspondiente prueba:
 
 ```{r prueba funcion moda}
 # Prueba funcion moda
-paste("La suma de los numeros de un boleto que mas se repite es ", moda(suma.combinaciones))
+paste("La suma de los numeros que mas se repite es ", moda(suma.combinaciones))
 ```
 
 Esto último es posible comprobarlo mediante una pequeña tabla dinámica en Excel, contando el número de apariciones en _suma.combinaciones_ :
@@ -96,7 +98,7 @@ Esto último es posible comprobarlo mediante una pequeña tabla dinámica en Exc
 
 ### a) Leer los archivos "datos_provincias.csv", "CodProv.txt" y "CodCCAA.dat". Añade el código de la comunidad autónoma al fichero "datos_provincias.csv" (no manualmente).
 
-En primer lugar, para leer cada archivo utilizamos la función _read.table_ cuyos parámetros serán la ruta del fichero, el separador de cada columna (dado que los archivos emplean diferentes separadores como la coma o un tabulador), así como la cabecera (el cual debe estar a TRUE en todos los casos, ya que todos los archivos presenten contienen cabecera). Cabe remarcar el parámetro _na.strings_ en _datos.provincias.csv_ , ya que la provincia Navarra está denotada como NA, por lo que R lo interpreta como una NA (vacío). Para evitarlo, indicamos que los caracteres a NA corresponden con cadenas vacías en lugar de NA, literalmente:
+En primer lugar, para leer cada archivo utilizamos la función _read.table_ cuyos parámetros serán la ruta del fichero, el separador de cada columna (dado que los archivos emplean diferentes separadores como la coma o un tabulador), así como la cabecera (el cual debe estar a TRUE en todos los casos, ya que todos los archivos presentes contienen cabecera). Cabe remarcar el parámetro _na.strings_ en _datos_provincias.csv_, ya que la provincia Navarra está denotada como NA, por lo que R lo interpreta como una NA (vacío). Para evitarlo, indicamos que los caracteres a NA corresponden con cadenas vacías en lugar de NA, literalmente:
 
 ``` {r leer_fichero}
 # Comunidades Autonomas
@@ -112,13 +114,15 @@ head(cod.prov)
 dim(cod.prov)
 
 # Datos provincias
-datos.provincias <- read.table("datos_provincias.csv", sep = ",", header = TRUE, na.strings = "")
+# na.string = "" => Para no confundir NA (Navarra) con un valor NA
+datos.provincias <- read.table("datos_provincias.csv", sep = ",", header = TRUE, 
+                               na.strings = "")
 head(datos.provincias)
 #Dimensiones (Filas x Columnas)
 dim(datos.provincias)
 ```
 
-Una vez leídos los ficheros, debemos añadir el código de comunidad autónoma, situado en _CodCCAA.csv_ , al fichero _datos_provincias.csv_ , sin tener que hacerlo manualmente. De forma previa, dado que los ficheros _CodCCAA.csv_ y _CodProv.txt_ contienen columnas con tildes, las renombramos:
+Una vez leídos los ficheros, debemos añadir el código de comunidad autónoma, situado en _CodCCAA.csv_, al fichero _datos_provincias.csv_, sin tener que hacerlo manualmente. De forma previa, dado que los ficheros _CodCCAA.csv_ y _CodProv.txt_ contienen columnas con tildes, las renombramos:
 
 ``` {r renombrar columnas}
 colnames(cod.ccaa) <- c("Cod.Comunidad", "Nombre.Comunidad", "Num")
@@ -126,11 +130,15 @@ colnames(cod.prov) <- c("Codigo", "Nombre.de.la.subdivision.en.la.ISO1",
                         "Comunidad.Autonoma")
 ```
 
-Una vez renombradas dichas columnas, debemos preguntarnos ¿Cómo enlazamos ambos DataFrames? Debemos fijarnos en que el DataFrame _datos.provincias_ tiene como columna el código de cada provincia, mientras que el DataFrame _cod.ccaa_ no presenta ningún campo relacionado con la provincia, sino con las comunidades autónomas. Sin embargo, disponemos de un DataFrame intermedio (como si de una tabla intermedia se tratase en SQL): _cod.prov_ , el cual relaciona la comunidad autónoma con la provincia. Por tanto, el objetivo será unir (inicialmente) _cod.ccaa_ con _cod.prov_ , para finalmente unirlo con _datos.provincias_ , no solo de cara al apartado a) sino además para el apartado b), donde pide los datos en función del código de CCAA, por lo que una vez mezcladas las tres tablas, pueden servirnos perfectamente para el resto de apartados. Sin embargo, si nos fijamos en el contenido de los DataFrames, tanto el campo Comunidad Autonoma como el código de Provincia presentan diferentes formatos en cada tabla (por ejemplo, el campo Cod.Autonoma en _cod.ccaa_ empieza por las siglas ES- mientras que el campo correspondiente en _cod.prov_ no, y lo mismo ocurre con el código de Provincia). Por tanto, antes de definir cualquier función debemos renombrar dichos campos, añadiendo las siglas ES-:
+Una vez renombradas dichas columnas, debemos preguntarnos ¿Cómo enlazamos ambos DataFrames? Debemos fijarnos en que el DataFrame _datos.provincias_ tiene como columna el código de cada provincia, mientras que el DataFrame _cod.ccaa_ no presenta ningún campo relacionado con la provincia, sino con las comunidades autónomas. Sin embargo, disponemos de un DataFrame intermedio (como si de una tabla intermedia se tratase en SQL): _cod.prov_, el cual relaciona la comunidad autónoma con la provincia. 
+
+Por tanto, el objetivo será unir (inicialmente) _cod.ccaa_ con _cod.prov_ para finalmente unirlo con _datos.provincias_, no solo de cara al apartado a) sino además para el apartado b), donde pide los datos en función del código de CCAA, por lo que una vez mezcladas las tres tablas, pueden servirnos perfectamente para el resto de apartados. Sin embargo, si nos fijamos en el contenido de los DataFrames, tanto el campo Comunidad Autónoma como el código de Provincia presentan diferentes formatos en cada tabla (por ejemplo, el campo Cod.Autonoma en _cod.ccaa_ empieza por las siglas ES- mientras que el campo correspondiente en _cod.prov_ no, y lo mismo ocurre con el código de Provincia). Por tanto, antes de definir cualquier función debemos renombrar dichos campos, añadiendo las siglas ES-:
 
 ``` {r renombrar campos CCAA y Provincia}
-cod.prov <- transform(cod.prov, Comunidad.Autonoma = paste("ES-", Comunidad.Autonoma, sep = ""))
-datos.provincias <- transform(datos.provincias, provincia_iso = paste("ES-", provincia_iso, sep = ""))
+cod.prov <- transform(cod.prov, Comunidad.Autonoma = 
+                        paste("ES-", Comunidad.Autonoma, sep = ""))
+datos.provincias <- transform(datos.provincias, provincia_iso = 
+                        paste("ES-", provincia_iso, sep = ""))
 ```
 
 A continuación, definiremos una función ( __juntar_tres_dataframes__ ), que presentan como parámetro el vector con los DataFrames a unir, así como la lista de claves con las que unir dichas tablas:
@@ -143,14 +151,14 @@ juntar_tres_dataframes <- function(vector.df, vector.claves) {
 }
 ```
 
-Mediante esta función, aplicaremos dos _merge_ sobre el conjunto de DataFrames: uno entre los dos primeros DataFrames del vector pasados como parámetro (utilizando como claves las proporcionadas en _vector.claves_ ), así como un segundo y último _merge_ entre el DataFrame anterior y el tercero situado en _vector.df_ . Cabe destacar que el DataFrame _datos.provincias_ contiene información de las Ciudades Autónomas de Ceuta y Melilla, las cuales __no están almacendas en el resto de tablas__ , por lo que al realizar ambos _merge_ debemos conservar todas filas de la tabla izquierda (mediante el parámetro _all.x = TRUE_ en ambas funciones) de forma que podamos mantener los datos sobre la evolución del COVID-19 en ambas ciudades.
+Mediante esta función, aplicaremos dos _merge_ sobre el conjunto de DataFrames: uno entre los dos primeros DataFrames del vector pasados como parámetro (utilizando como claves las proporcionadas en _vector.claves_ ), así como un segundo y último _merge_ entre el DataFrame anterior y el tercero situado en _vector.df_. Cabe destacar que el DataFrame _datos.provincias_ contiene información de las Ciudades Autónomas de Ceuta y Melilla, las cuales __no están almacendas en el resto de tablas__, por lo que al realizar ambos _merge_ debemos conservar todas filas de la tabla izquierda (mediante el parámetro _all.x = TRUE_) de forma que podamos mantener los datos sobre la evolución del COVID-19 en ambas ciudades.
 
-Por tanto, una vez definida la función realizamos la llamada con los parámetros pertinentes, juntando en primer lugar _datos.provincias_ con _cod.prov_ y, finalmente, con _cod.ccaa_ :
+Por tanto, una vez definida la función realizamos la llamada con los parámetros pertinentes, juntando en primer lugar _datos.provincias_ con _cod.prov_ y finalmente _cod.ccaa_ :
 
 ```{r prueba juntar_tres_dataframes}
 datos.ccaa <- juntar_tres_dataframes(vector.df = list(datos.provincias, cod.prov, cod.ccaa), 
                                      vector.claves = c("provincia_iso", "Codigo", 
-                                                       "Comunidad.Autonoma", "Cod.Comunidad") 
+                                     "Comunidad.Autonoma", "Cod.Comunidad") 
                                      )
 
 # Comprobemos que el numero de filas equivale al de datos.provincias
@@ -166,7 +174,8 @@ Para comprobar que cada Provincia está en su correspondiente Comunidad Autónom
 lapply(unique(datos.ccaa[, "Comunidad.Autonoma"]), function(x) {
   if (is.na(x)) {
     vector.provincias <- c(paste0(x, " => "), 
-                           unique(datos.ccaa[is.na(datos.ccaa["Comunidad.Autonoma"]), "provincia_iso"]))
+                           unique(datos.ccaa[is.na(datos.ccaa["Comunidad.Autonoma"]), 
+                                             "provincia_iso"]))
   }else {
     vector.provincias <- c(paste0(x, " => "), 
                            unique(datos.ccaa[datos.ccaa["Comunidad.Autonoma"] == x & 
@@ -176,7 +185,7 @@ lapply(unique(datos.ccaa[, "Comunidad.Autonoma"]), function(x) {
 })
 ```
 
-Por tanto, vemos que cada provincia está asociada a su correspondiente comunidad, salvo Ceuta y Melilla (NA). Una vez tengamos el DataFrame generado, lo volcamos al fichero _datos.provincias.csv_ , mediante la función _write.csv_ , en lugar de _write.table_ ya que existe una función específica que nos permite escribir directamente sobre archivos con extensión .csv
+Por tanto, vemos que cada provincia está asociada a su correspondiente comunidad, salvo Ceuta y Melilla (NA). Una vez tengamos el DataFrame generado, lo volcamos al fichero _datos.provincias.csv_, mediante la función _write.csv_, en lugar de _write.table_ ya que existe una función específica que nos permite escribir directamente sobre archivos con extensión .csv
 
 ```
 write.csv(datos.ccaa[c("Comunidad.Autonoma", colnames(datos.provincias))], 
@@ -185,7 +194,7 @@ write.csv(datos.ccaa[c("Comunidad.Autonoma", colnames(datos.provincias))],
 
 ### b) Selecciona los datos de la comunidad autónoma que te corresponda.
 
-Para este apartado, ya disponemos del DataFrame con las tablas cruzadas, incluyendo el código de comunidad y el número de casos. Sin embargo, antes de continuar eliminaremos dos columnas redundantes: __Nombre.de.la.subdivision.en.la.ISO1__ y __Nombre.Comunidad__ (columnas 9 y 10, respectivamente) , ya que disponemos de las columnas __Comunidad.Autonoma__ y __provincia_iso__ , evitando con ello información redundante:
+Para este apartado, ya disponemos del DataFrame con las tablas cruzadas, incluyendo el código de comunidad y el número de casos. Sin embargo, antes de continuar eliminaremos dos columnas redundantes: __Nombre.de.la.subdivision.en.la.ISO1__ y __Nombre.Comunidad__ (columnas 9 y 10, respectivamente) , ya que disponemos de las columnas __Comunidad.Autonoma__ y __provincia_iso__, evitando con ello información redundante:
 
 ```{r borrado_columnas_redundantes}
 datos.ccaa <- datos.ccaa[, -c(9, 10)]
@@ -201,14 +210,17 @@ seleccionar_datos_comunidad <- function(datos.ccaa, dni) {
 # Prueba con Castilla y Leon (DNI = 12345678 mod 17 -> 6)
 head(seleccionar_datos_comunidad(datos.ccaa, 12345678))
 
-# Prueba con Cantabria (DNI = 54003003 mod 17 -> 15)
-head(seleccionar_datos_comunidad(datos.ccaa, 54003003))
+# Prueba con Castilla la Mancha (DNI = 54003004 mod 17 -> 5)
+datos.filtrado <- seleccionar_datos_comunidad(datos.ccaa, 54003004)
 ```
 
 ### c) Realizar un gráfico que muestre adecuadamente la evolución de los casos nuevos. Justifica el gráfico elegido.
 
-Para este apartado (y de forma previa a su implementación gráfica), la mejor forma de representación sería __agrupar el número de casos de cada Comunidad Autónoma / Provincia por la fecha__ , de forma que podamos tener el total de casos diarios. Para ello, y de cara tanto al apartado c) como d), diseñaremos una función denominada __agrupar.datos__ que recibe como parámetros el DataFrame a agrupar (datos.ccaa), el campo sobre el que agrupar (clave), así como un vector de columnas a proyectar.
-Para ello, mediante la función _by_ agrupamos cada fila por el campo clave del DataFrame, obteniendo sus valores únicos. En el resto de columnas indicadas por parámetro, mediante la función _lapply_ realizaremos el sumatorio por cada una de ellas, concatenando los resultados a través de la función _cbind_ , la cual es invocada gracias a la función _do.call_ . Una vez obtenida la fila, eliminamos su nombre de fila (row.name) ya que por defecto es la primera columna; además de agrupar cada una de ellas en un mismo DataFrame, aplicando la función _rbind_ , añadiendo finalmente los nombres de columnas:
+__NOTA__: para la realización de este apartado se utilizará el DNI 54003004, dado que mi DNI (54003003) coincide con la comunidad autónoma de Cantabria, por lo que el número de casos y pruebas es menor en comparación con otras provincias. Por ello, para reflejar mejor los gráficos resultantes he sumado un 1 al DNI (54003004 - Castilla la Mancha).
+
+Para este apartado (y de forma previa a su implementación gráfica), la mejor forma de representación sería __agrupando el número de casos por fecha__, de forma que podamos tener el total de casos diarios. Para ello, y de cara tanto al apartado c) como d), diseñaremos una función denominada __agrupar.datos__ que recibe como parámetros el DataFrame a agrupar (datos.ccaa), el campo sobre el que agrupar (clave), así como un vector de columnas a filtrar.
+
+Para ello, mediante la función _by_ agrupamos cada fila por el campo __clave__ (pasado como parámetro), obteniendo sus valores únicos. En el resto de columnas indicadas por parámetro, mediante la función _lapply_ realizaremos el sumatorio por cada una de ellas, concatenando los resultados a través de la función _cbind_, la cual es invocada gracias a la función _do.call_. Una vez obtenida la fila, eliminamos su nombre de fila ( _rownames_ ) ya que por defecto es la primera columna; además de agrupar cada una de ellas en un mismo DataFrame, aplicando la función _rbind_, además de añadir finalmente los nombres de columnas:
 
 ```{r agrupar_datos}
 agrupar_datos <- function(datos.ccaa, clave, columnas) {
@@ -232,32 +244,32 @@ Una vez definida la función, __agrupamos el número de casos (num_casos) por ca
 
 ``` {r prueba agrupar_datos}
 # Prueba agrupar_datos
-datos.agrupados.fecha <- agrupar_datos(datos.ccaa, "fecha", "num_casos")
+datos.agrupados.fecha <- agrupar_datos(datos.filtrado, "fecha", "num_casos")
 # Echamos un primer vistazo a los datos obtenidos
 head(datos.agrupados.fecha)
 ```
 
-Una vez tengamos los datos agrupados, de cara a facilitar la representación gráfica, cambiaremos el tipo de dato del campo fecha, pasando de tipo _factor_ a _Date_ :
+Una vez tengamos los datos agrupados, de cara a facilitar la representación gráfica, cambiaremos el tipo de dato al formato fecha ( _factor_ a _Date_ ):
 
 ```{r conversion de factor a Date, campo fecha}
-datos.agrupados.fecha$fecha <- as.Date(datos.agrupados.fecha$fecha)
+datos.agrupados.fecha[, "fecha"] <- as.Date(datos.agrupados.fecha[, "fecha"])
 sapply(datos.agrupados.fecha, class)
 ```
 
-Una vez preprocesado el DataFrame, es momento de realizar su representación gráfica. Lo primero que debemos pensar es qué tipo de gráfico elegir (gráfico de barras, gráfico de líneas...). Una primera opción sería aplicar un gráfico de barras vertical, donde cada barra muestre el número de casos por cada fecha. Esta opción, a simple vista, resultaría ser la ideal, de no ser por un factor: __el elevado número de filas__ .
+Una vez preprocesado el DataFrame, es momento de realizar su representación gráfica. Lo primero que debemos pensar es qué tipo de gráfico elegir (gráfico de barras, gráfico de líneas...). Una primera opción sería aplicar un gráfico de barras vertical, donde cada barra muestre el número de casos por cada fecha. Esta opción, a simple vista, resultaría ser viable de no ser por un factor: __el elevado número de filas__.
 
 ```{r numero de filas}
 nrow(datos.agrupados.fecha)
 ```
 
-Es decir, supondría tener que representar en un mismo eje 237 barras en las que se muestra la distribución del número de casos a lo largo del tiempo, lo que podría dificultar el entendimiento del gráfico. Por el contrario, utilizar un gráfico de líneas puede resultar una mayor ventaja, dado que se apreciaría en mejor medida la evolución temporal del número de casos, siendo la mejor opción para mostrar la evolución de una variable a lo largo del tiempo, mientras que un gráfico de barras se emplea comunmente para comparar datos con un número limitado de categorías, sobretodo cuando la muestra no es muy grande.
+Es decir, supondría tener que representar en un mismo eje 237 barras en las que se muestra la distribución del número de casos a lo largo del tiempo, lo que podría dificultar el entendimiento del gráfico. Por el contrario, utilizar un gráfico de líneas puede resultar una mayor ventaja, dado que permite mostrar los cambios que sufre una variable __a lo largo del tiempo__, dado que lo que se desea representar es, al fin y al cabo, una serie temporal en el que se muestra una sucesión del número de casos por COVID-19, donde lo que se analiza es su tendencia (ascendente o descendente) e incluso la búsqueda posibles patrones, pero no la de proporcionar "lecturas cuantitativas" de gran precisión. Por el contrario, un gráfico de barras se emplea comunmente para comparar datos con un número limitado de categorías o grupos, sobretodo cuando la muestra no es muy grande.
 
-Por ello, tanto para el apartado c) como d) crearemos una función, denominada __imprimir_grafica__ , recibiendo como parámetros el conjunto de datos a mostrar, las columnas empleadas para los eje X e Y, el número de divisiones a realizar en el eje X, así como el color del gráfico.
+Por ello, tanto para el apartado c) como d) crearemos una función, denominada __imprimir_grafica__, recibiendo como parámetros el conjunto de datos a mostrar, las columnas empleadas para los eje X e Y, el número de divisiones a realizar en el eje X, así como el color del gráfico:
 
 ```{r imprimir_grafica}
 imprimir_grafica <- function(datos, eje.x, eje.y, divisiones, color) {
   par(mar=c(11,4,4,1), xaxt = "n")
-  grafico.lineas <- plot(x = datos[, eje.x], y = datos[, eje.y], log = "y", type = "l", 
+  grafico.lineas <- plot(x = datos[, eje.x], y = datos[, eje.y], type = "l", 
                          main = "Evolucion del numero de casos COVID-19", 
                          xlab = "", ylab = "Numero de casos", font.lab = 2, 
                          col = color, las = 2, lwd = 2)
@@ -269,10 +281,7 @@ imprimir_grafica <- function(datos, eje.x, eje.y, divisiones, color) {
   abline(v = sec, lty=2)
   points(x = subset(datos, datos[, eje.x] %in% sec), pch = 20)
   
-  mtext(text = "Fecha",
-        side = 1,
-        line = 6,
-        font = 2)
+  mtext(text = "Fecha", side = 1, line = 6, font = 2)
 }
 ```
 
@@ -280,11 +289,11 @@ De la función anterior, quisiera destacar algunos detalles relevantes:
 
 1. Para poder apreciar en mayor medida el gráfico resultante, mediante la función _par_ estableceremos unos mayores márgenes de representación, además de eliminar temporalmente el eje X. Esto último lo hacemos para que el usuario, por parámetro, pueda elegir el número de divisiones (el número de fechas a mostrar en el eje X) de forma dinámica.
 
-2. De la función _plot_ quisiera destacar el parámetro _log_ , el cual permite representar los valores del eje Y siguiendo una __escala logarítmica__ , dado que, por lo contrario, no se apreciaría el número de casos durante las primeras semanas, cuyos valores son muy pequeños (9, 20, 16, 19...) en comparación con periodos de tiempo en los que el número de casos rondaban los 10000. Por otro lado, el parámetro _las_ se emplea para modificar la orientación de las etiquetas de los ejes (en horizontal), mientras que el campo _lwd_ modifica el grosor del gráfico.
+2. Por otro lado, el parámetro _las_ se emplea para modificar la orientación de las etiquetas de los ejes (en horizontal), mientras que el campo _lwd_ modifica el grosor del gráfico.
 
-3. Tras borrar el eje X en la función _par_ , mediante la función _axis.Date_ establecemos el eje de abcisas (concretamente en formato _Date_ ), obteniendo una secuencia de fechas con tantas divisiones como el usuario haya especificado.
+3. Tras borrar el eje X con la función _par_, mediante la función _axis.Date_ establecemos el eje de abcisas (concretamente en formato _Date_ ), obteniendo una secuencia de fechas con tantas divisiones como el usuario haya especificado.
 
-4. Una vez creado el eje de abcisas, mediante la función _abline_ establecemos las rectas discontinuas para cada fecha en el eje X, empleando para ello la misma secuencia de fechas que con la función _axis.Date_ . De este modo, el usuario podrá visualizar con mayor facilidad el número de casos en cada fecha.
+4. Una vez creado el eje de abcisas, mediante la función _abline_ establecemos las rectas discontinuas para cada fecha en el eje X, empleando para ello la misma secuencia de fechas que con la función _axis.Date_. De este modo, el usuario podrá visualizar con mayor facilidad el número de casos en cada fecha.
 
 5. Mediante la función _points_ marcamos los números de casos anteriores.
 
@@ -297,24 +306,29 @@ Una vez definida la función, realizamos la prueba:
 imprimir_grafica(datos.agrupados.fecha, "fecha", "num_casos", 15, "red")
 ```
 
+Analizando la evolución del número de casos, podemos observar el elevado pico de contagios producido durante los primeros meses de pandemia, en especial cuando las medidas en Europa (y en concreto España), no eran lo suficientemente estrictas. Tras la declaración del estado de alarma el día 14 de marzo, los efectos del confinamiento se tradujeron en un descenso lento y gradual en el número de casos diarios, llegando a mínimos a mediados de junio. No obstante, con la apertura gradual de fronteras y negocios la curva de contagios comenzó a crecer desde comienzos de verano, aunque de forma menos "apuntalada" que durante la "primera ola", alcanzando en el mes de septiembre valores similares a los meses de abril y marzo.
+
+Cabe destacar, especialmente, la caída en el número de contagios a partir del día 22 de septiembre (con solo 13 casos nuevos), lo que puede deberse a una falta de datos por parte de las comunidades autónomas, por lo que el _dataset_ está incompleto para dicho día.
+
 ### d) Presenta en un único gráfico la evolución de las distintas variables (columnas) por medio de un gráfico de líneas múltiples. Utiliza diferentes colores y añade una leyenda que muestre el origen de cada línea.
 
-Para este apartado, dado que disponemos de una función diseñada en el apartado anterior que permite agrupar las columnas de un DataFrame, llamaremos de nuevo a dicha función, agrupando cada columna (casos nuevos, casos por pruebas PCR, casos por pruebas anticuerpos, otras pruebas y pruebas desconocidas) en función de la fecha. De este modo podremos conocer la evolución de cada variable a lo largo del tiempo:
+Para este apartado, dado que disponemos de una función diseñada en el apartado anterior que permite agrupar las columnas de un DataFrame, llamaremos de nuevo a dicha función agrupando cada columna (casos nuevos, casos por pruebas PCR, casos por pruebas anticuerpos, otras pruebas y pruebas desconocidas) en función de la fecha. De este modo podremos conocer la evolución de cada variable a lo largo del tiempo:
 
 ```{r agrupar_datos_multiples_columnas}
-casos.por.columnas <- agrupar_datos(datos.ccaa, "fecha", c("num_casos", "num_casos_prueba_pcr", 
+casos.por.columnas <- agrupar_datos(datos.filtrado, "fecha", c("num_casos", 
+                                   "num_casos_prueba_pcr", 
                                    "num_casos_prueba_test_ac", "num_casos_prueba_otras", 
                                    "num_casos_prueba_desconocida"))
 # Modificamos nuevamente el campo fecha (factor -> Date)
-casos.por.columnas$fecha <- as.Date(casos.por.columnas$fecha)
+casos.por.columnas[, "fecha"] <- as.Date(casos.por.columnas[, "fecha"])
 
 # Mostramos las primeras filas
 head(casos.por.columnas)
 ```
 
-Una vez agrupado el DataFrame, debemos representar gráficamente cada columna con un color diferente. Para ello, creamos una función denominada __imprimir_multiples_lineas__ , que recibe como parámetros tanto el DataFrame a representar gráficamente, los valores tanto del eje X (en cuyo caso será el campo fecha) como del eje Y (las columnas con el número de casos); además de un vector con la paleta de colores para cada línea.
+Una vez agrupado el DataFrame, debemos representar gráficamente cada columna con un color diferente. Para ello, creamos una función denominada __imprimir_multiples_lineas__, que recibe como parámetros tanto el DataFrame a representar gráficamente, los valores del eje X (campo fecha), del eje Y (columnas con el número de casos); además de un vector con la paleta de colores para cada línea.
 
-En primer lugar, la función recupera la primera de las columnas pasadas como parámetro (num_casos) y establece el mismo gráfico que el del apartado anterior, llamando a la función __imprimir_grafica__ . A continuación, y mediante la función _mapply_ , por cada pareja (columna, color) añade una nueva línea al gráfico ( _line_ ), asociando su correspondiente color. Finalmente, por medio de la función _legend_ se muestra la leyenda del gráfico, situándose en la parte superior:
+En primer lugar, la función recupera la primera de las columnas pasadas como parámetro (num_casos) y establece el mismo gráfico que el del apartado anterior, llamando a la función __imprimir_grafica__. A continuación, y mediante la función _mapply_, por cada pareja (columna, color) añade una nueva línea al gráfico ( _line_ ), asociando su correspondiente color. Finalmente, por medio de la función _legend_ se muestra la leyenda en el gráfico, situándose en la parte superior:
 
 ```{r imprimir_multiples_lineas}
 imprimir_multiples_lineas <- function(datos, eje.x, eje.y, paleta) {
@@ -340,25 +354,25 @@ paleta <- c("red", "blue", "orange", "darkgreen", "purple")
 imprimir_multiples_lineas(casos.por.columnas, "fecha", columnas, paleta)
 ```
 
-Analizando la gráfica resultante, podemos comprobar cómo el número de casos por COVID-19 han sido diagnosticados, en su mayoría, por pruebas PCR, dado que ambos gráficos evolucionan "a la par", un posible indicativo de que las pruebas por PCR son las de mayor fiabilidad. Por el contrario, otras pruebas como los Anti-cuerpos, comenzaron a diagnostar casos a comienzos de la pandemia, aunque con el transcurso del tiempo el número de pruebas se ha visto reducido. Curiosamente, las pruebas denotadas como "desconocidas" han aumentado desde finales de septiembre, pudiendo tratarse de los conocidos como "test rápidos": pruebas de diágnostico rápido (similar a un test de embarazo), donde el objetivo es identificar la proteína del virus por medio de una muestra de sangre.
+Analizando la gráfica resultante, podemos comprobar cómo el número de casos por COVID-19 han sido diagnosticados, en su mayoría, por pruebas PCR, dado que ambos gráficos evolucionan "a la par", un posible indicativo de que las pruebas por PCR son las de mayor uso. Por el contrario, otras pruebas como los Anti-cuerpos, comenzaron a diagnostar casos a comienzos de la pandemia, aunque con el transcurso del tiempo el número de pruebas se ha visto reducido. Curiosamente, las pruebas denotadas como "desconocidas" han aumentado desde finales de septiembre.
 
 ## Pregunta 3. Consideramos un fichero de datos en formato SAS de nombre "punt.sas7bdat" que contiene datos sobre alumnos matriculados en diversos cursos.
 
 ### a) Importa el fichero de datos y guárdalo en un objeto de nombre punt. Comprueba la estructura del objeto punt. Si es necesario conviértelo en un data frame.
 
-Hasta ahora, hemos trabajado con ficheros de extensiones .txt o separados por comas (.csv). En este apartado, nos encontramos con una nueva extensión: __sas7bdat__ . Una posible opción sería leer dicho fichero por medio de las funciones del paquete base como _scan_ o incluso _read.table_ :
+Hasta ahora, hemos trabajado con ficheros de extensiones .txt o separados por comas (.csv). En este apartado, nos encontramos con una nueva extensión: __sas7bdat__. Una posible opción sería leer dicho fichero por medio de las funciones del paquete base como _scan_ o incluso _read.table_ :
 
 ```{r, error=TRUE}
 read.table("Punt.sas7bdat")
 ```
 
-Sin embargo, dicha función no permite leer el contenido del archivo. Esto es debido a que el fichero Punt.sas7bdat __NO__ contiene la información en texto plano, por lo que su contenido no es legible a simple vista:
+Sin embargo, dicha función no permite leer el contenido del archivo. Esto es debido a que el fichero _Punt.sas7bdat_ __NO__ contiene la información en texto plano, por lo que su contenido no es legible a simple vista:
 
 ![Contenido del fichero Punt.sas7bdat](formato_fichero.png)
 
-Esto último supone que las funciones base de R no nos permiten leer su contenido. Por ello, y como único caso excepcional a lo largo de la práctica, recurriremos a una librería externa, denominada [_sas7bdat_ ( __Click para acceder al sitio web de CRAN__ )](https://cran.r-project.org/web/packages/sas7bdat/sas7bdat.pdf) . Para instalar el paquete, empleamos la función _install.packages_ . Una vez instalado, debemos importarlo por medio de la función _library_ :
+Esto último supone que las funciones base de R no nos permiten leer su contenido. Por ello, __y como único caso excepcional a lo largo de la práctica__, recurriremos a una librería externa denominada [_sas7bdat_ ( __Click para acceder al sitio web de CRAN__ )](https://cran.r-project.org/web/packages/sas7bdat/sas7bdat.pdf) . Para instalar el paquete, empleamos la función _install.packages_. Una vez instalado, debemos importarlo por medio de la función _library_ :
 
-```{r instalacion_paquete_sas7bdat, echo = FALSE}
+```{r instalacion_paquete_sas7bdat, results = 'hide'}
 install.packages("sas7bdat", repos = "http://cran.us.r-project.org")
 ```
 
@@ -369,10 +383,10 @@ library(sas7bdat)
 (.packages())
 ```
 
-Una vez cargado el paquete, ya podemos utilizar la función _read.sas7bdat_ , la cual permite leer un fichero SAS en formato binario de forma más cómoda que las librerías de R base, almacenando su contenido (por defecto en formato DataFrame) en una variable denominada _punt_ :
+Una vez cargado el paquete, ya podemos utilizar la función _read.sas7bdat_, la cual permite leer un fichero SAS en formato binario de forma más cómoda que las librerías de R base, almacenando su contenido (por defecto en formato DataFrame) en una variable denominada _punt_:
 
 ```{r carga Punt.sas7bdat}
-punt <- read.sas7bdat("/Users/alberto/UCM/Programacion R/TareaEvaluacion/Datos/Punt.sas7bdat")
+punt <- read.sas7bdat("Punt.sas7bdat")
 
 # Comprobamos que se trata, efectivamente, de un DataFrame
 class(punt)
@@ -382,11 +396,11 @@ head(punt)
 sapply(punt, class)
 ```
 
-Analizando las columnas, podemos comprobar cómo los campos de cadenas de caracteres (SEGSOC, ENROLLED, COURSE y TEACHER) se codifican como _factor_ .
+Analizando las columnas, podemos comprobar cómo los campos de cadenas de caracteres (SEGSOC, ENROLLED, COURSE y TEACHER) se codifican como _factor_.
 
 ### b) Obtener una nueva variable overall que de la puntuación media de los cuatro test para cada estudiante suponiendo que el último test se pondera el doble.
 
-Para este apartado creamos nuevamente una función, denominada __calcular_total_puntuacion__ , que recibe como parámetros el DataFrame con las puntuaciones, la columna con el identificador del alumno, así como un vector con las puntuaciones de cada test. Sobre dicho DataFrame aplicamos la función _cbind_ , concatenando las columnas pasadas como parámetro junto con una nueva columna (OVERALL) con la puntuación total. Para su cálculo, mediante la función _apply_ suma las n - 1 primeras columnas y, con la n-ésima columna, multiplica su valor por dos, sumándolo con el resto:
+Para este apartado creamos nuevamente una función, denominada __calcular_total_puntuacion__, que recibe como parámetros el DataFrame con las puntuaciones, la columna con el identificador del alumno así como un vector con las puntuaciones de cada test. Sobre dicho DataFrame aplicamos la función _cbind_, concatenando las columnas pasadas como parámetro junto con una nueva columna (OVERALL) con la puntuación total. Para su cálculo, mediante la función _apply_ suma las n - 1 primeras columnas y, con la n-ésima columna, multiplica su valor por dos, sumándolo con el resto:
 
 ```{r calcular_total_puntuacion}
 calcular_total_puntuacion <- function(puntuaciones, id.alumno, columnas.test) {
@@ -406,7 +420,7 @@ overall
 
 ### c) Formar una nueva variable denominada start compuesta por el mes y día de ENROLLED y por el año corriente y presenta en pantalla las variables SEGSOC, COURSE y start.
 
-De forma similar al apartado b), definimos una función denominada __anadir_columna_fecha__ , que recibe como parámetros las puntuaciones en formato DataFrame, la columna compuesta por el día y mes (dia.mes), así como un vector con el resto de columnas a proyectar (en nuestro caso SEGSOC y COURSE). Sobre dicha función aplicamos nuevamente _cbind_ , concatenando las columnas anteriores con una nueva, denominada START, formada por el año corriente ( mediante la función _format(Sys.Date(), "%Y")_ ), así como el mes y día del parámetro dia.mes:
+De forma similar al apartado b), definimos una función denominada __anadir_columna_fecha__, que recibe como parámetros las puntuaciones en formato DataFrame, la columna compuesta por el día y mes (dia.mes), así como un vector con el resto de columnas a proyectar (en nuestro caso SEGSOC y COURSE). Sobre dicha función aplicamos nuevamente _cbind_, concatenando las columnas anteriores con una nueva, denominada START, formada por el año corriente (mediante la función _format(Sys.Date(), "%Y")_), así como el mes y día del parámetro dia.mes:
 
 ```{r anadir_columna_fecha}
 anadir_columna_fecha <- function(puntuaciones, dia.mes, columnas) {
@@ -425,11 +439,11 @@ start
 
 ### d) Formar un nuevo data frame de nombre level500 que contenga los estudiantes cuyo curso acaba en 500. Crear dos nuevas variables carácter, una de nombre subject con el código de curso (parte literal) y otra de nombre level con el número del curso (parte numérica).
 
-Para este apartado, la función diseñada (denominada __crear_nuevo_df__ ) contiene como parámetros el DataFrame con las puntuaciones de cada alumno, el número de curso a filrar, así como la columna donde aplicar el filtro (COURSE).
+Para este apartado, la función diseñada (denominada __crear_nuevo_df__) contiene como parámetros el DataFrame con las puntuaciones de cada alumno, el número de curso a filrar, así como la columna donde aplicar el filtro (COURSE).
 
-Inicialmente, debemos recuperar aquellas filas del DataFrame cuyo valor en la columna COURSE acabe en "500". Para ello, mediante la función _grep_ aplicamos una __expresión regular__ a todas las filas del DataFrame, filtrando aquellas que acaben en 500 (para indicarlo mediante una expresión regular, bastaría con concatenar el valor "500" junto con el símbolo "$"). Una vez filtradas las filas, mediante la función _transform_ añadimos las dos nuevas columnas. Para ello, mediante la función _gsub_ aplicamos la expresión regular "([A-Za-z]+)([0-9]+)" a la columna COURSE, lo que permite extraer por un lado (SUBJECT) el código de curso, expresión formada por las letras del alfabeto ([A-Za-z]+); así como la columna LEVEL, que contiene la parte numérica del curso ([0-9]+).
+Inicialmente, debemos recuperar aquellas filas del DataFrame cuyo valor en la columna COURSE acabe en "500". Para ello, mediante la función _grep_ aplicamos una __expresión regular__ a todas las filas del DataFrame, filtrando aquellas que acaben en 500 (para indicarlo mediante una expresión regular, bastaría con concatenar el valor pasado como parámetro junto con el símbolo "$"). Una vez filtradas las filas, mediante la función _transform_ añadimos las dos nuevas columnas. Para ello, mediante la función _gsub_ aplicamos la expresión regular "([A-Za-z]+)([0-9]+)" a la columna COURSE, lo que permite extraer por un lado (SUBJECT) el código de curso, expresión formada por las letras del alfabeto ([A-Za-z]+); así como la columna LEVEL, que contiene la parte numérica del curso ([0-9]+).
 
-Por último, para convertir ambas variables en tipo carácter (en lugar de factor o numérico), a cada nueva columna aplicaremos la función _as.character_ ( mediante _lapply_ ), reestableciendo los números de fila:
+Por último, para convertir ambas variables en tipo carácter (en lugar de factor o numérico), a cada nueva columna aplicaremos la función _as.character_ (mediante _lapply_), reestableciendo los números de fila:
 
 ```{r crear_nuevo_df}
 crear_nuevo_df <- function(puntuaciones, codigo, columna) {
@@ -461,11 +475,11 @@ level500
 sapply(level500, class)
 ```
 
-Como podemos observar en la ejecución anterior, las columnas SUBJECT y LEVEL se codifican como _character_ . 
+Como podemos observar en la ejecución anterior, las columnas SUBJECT y LEVEL se codifican como _character_. 
 
 ### e) Escribe la información de level500 en un fichero ASCII de nombre "level500.dat".
 
-Finalmente, para volcar el contenido del DataFrame en un fichero (en formato ASCII), bastará con emplear la función _write.table_ , tal y como se muestra a continuación, omitiendo los números de fila ( _row.names = FALSE_ ):
+Finalmente, para volcar el contenido del DataFrame en un fichero (en formato ASCII), bastará con emplear la función _write.table_, tal y como se muestra a continuación, omitiendo los números de fila ( _row.names = FALSE_ ):
 
 ```
 write.table(level500, file = "level500.dat", row.names = FALSE)
@@ -478,12 +492,12 @@ Inicialmente, cargamos la matriz en una variable, denominada _puntuaciones.hidro
 
 ```{r matriz_puntuaciones_hidrogel}
 puntuaciones.hidrogel <- structure(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 
-                                     16, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
-                                     1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
-                                     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 3, 
-                                     2, 1, 1, 1, 1, 1, 1, 2, 1, 4, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 
-                                     2, 3, 3, 1, 2, 1, 1, 1, 1, 1, 3, 4, 1, 1, 1, 2, 3, 4, 3, 1, 2, 
-                                     1, 1, 4, 1, 1, 4, 4, 1, 1), .Dim = c(16L, 8L))
+                         16, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+                         1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+                         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 3, 
+                         2, 1, 1, 1, 1, 1, 1, 2, 1, 4, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 
+                         2, 3, 3, 1, 2, 1, 1, 1, 1, 1, 3, 4, 1, 1, 1, 2, 3, 4, 3, 1, 2, 
+                         1, 1, 4, 1, 1, 4, 4, 1, 1), .Dim = c(16L, 8L))
 puntuaciones.hidrogel
 ```
 
@@ -491,9 +505,9 @@ Cabe destacar que, a diferencia de los apartados anteriores, ya no disponemos de
 
 ### a) Para la semana $S_7$, calcule el vector $(f_1, 1 - f_1, f_2, 1 - f_2, f_3, 1 - f_3, f_4, 1 - f_4)$ , donde $f_i$ es la frecuencia de la modalidad i (1,2,3,4) observada en la semana $S_7$ sobre los 16 sujetos. (Sugerencia: use las funciones tabulate(), cbind(), t() y as.vector())
 
-En primer lugar, de cara al apartado b), creamos una función denominada __calcular_vector_frecuencias__ que recibe como parámetro la columna directamente con sus puntuaciones, además del número total de puntuaciones (en nuestro caso 4). Inicialmente, mediante la función _tabulate_ obtenemos el número de repeticiones de cada puntuación en la columna pasada como parámetro. A continuación, una vez obtenido el número de repeticiones, calculamos la frecuencia de cada uno, dividiéndolo entre la longitud de la columna __puntuaciones__ . Por último, mediante la función _rbind_ (equivalente a t(cbind())) unimos los vectores de frecuencias (f, 1 - f), concatenando cada pareja. 
+En primer lugar, de cara al apartado b), creamos una función denominada __calcular_vector_frecuencias__ que recibe como parámetro la columna directamente con sus puntuaciones, además del número total de puntuaciones (en nuestro caso 4). Inicialmente, mediante la función _tabulate_ obtenemos el número de repeticiones de cada puntuación en la columna pasada como parámetro. A continuación, una vez obtenido el número de repeticiones calculamos la frecuencia de cada uno, dividiéndolo entre la longitud de la columna __puntuaciones__. Por último, mediante la función _rbind_ (equivalente a t(cbind())) unimos los vectores de frecuencias (f, 1 - f), concatenando cada pareja. 
 
-Sin embargo, puede ocurrir que una puntuación no aparezca en la columna (por ejemplo, en las semanas 1 y 3 solo aparece la puntuación 1), por lo que, por cada puntuación faltante, añadimos las parejas (0,1), es decir, la frecuencia de aparición es 0 y por tanto, 1 - f = 1.
+Sin embargo, puede ocurrir que una puntuación no aparezca en la columna (por ejemplo, en las semanas 1 y 3 solo aparece la puntuación 1), por lo que por cada puntuación faltante añadimos las parejas (0,1), es decir, la frecuencia de aparición es 0 y por tanto, 1 - f = 1.
 
 ```{r calcular_vector_frecuencias}
 calcular_vector_frecuencias <- function(puntuaciones, categorias) {
@@ -522,7 +536,8 @@ matriz.frecuencias <- matrix(unlist(apply(
         nrow = 8)
 
 rownames(matriz.frecuencias) <- c("1", "1-f1", "2", "1-f2", "3", "1-f3", "4", "1-f4")
-colnames(matriz.frecuencias) <- c("S1", "S2", "S3", "S4", "S5", "S6", "S7")
+colnames(matriz.frecuencias) <- c("S1", "S2", "S3", 
+                                  "S4", "S5", "S6", "S7")
 
 # Comprobamos que se trata, efectivamente, de una matriz
 class(matriz.frecuencias)
@@ -532,77 +547,97 @@ matriz.frecuencias
 
 ### c) Utilice la función barplot() y el argumento col = c("black", "white") en esta matriz. El gráfico que se obtiene ofrece una descripción general de la evolución de la Sensación de ardor con el tiempo.
 
-Mediante la función _barplot_ , mostramos el diagrama de barras:
+Mediante la función _barplot_, mostramos el diagrama de barras además de incluir una leyenda en la parte derecha del gráfico (modificando el margen derecho para no solaparlo):
 
 ```{r diagrama_barras, fig.width=6, fig.height=5}
+par(xpd = TRUE, mar = par()$mar + c(0,0,0,4))
 barplot(matriz.frecuencias, col = c("black", "white"), 
         main = "EVOLUCION SENSACION DE ARDOR CON EL TIEMPO")
+legend(x= "topright",  legend = c("FREC. ARDOR", "FREC. SIN ARDOR"), 
+       inset = c(-0.3, 0), fill = c("black", "white"), 
+       cex = 0.6, text.font = 2, bg = 'white') 
 ```
 
 A través del gráfico anterior, podemos comprobar como, con el transcurso de las semanas, la sensación de ardor al emplear el hidrogel aumenta, concretamente a partir de la cuarta semana, donde aproximadamente un 19 y 13 % de los usuarios aumentaron su puntuación a 2 y 3, respectivamente.
 
 ### d) Cambie el gráfico anterior para que las barras que representan las frecuencias estén en rojo. Los números de las semanas deben estar en azul y en la parte superior del gráfico en lugar del fondo. Los números de modalidad deben estar a la izquierda, en azul. Agrega un título al gráfico.
 
-Para resolver este apartado, creamos una función denominada __mostrar_frecuencias__ , que recibe como parámetros, además de la matriz, el ancho de la barra como el espacio entre cada una:
+Para resolver este apartado, creamos una función denominada __mostrar_frecuencias__, que recibe como parámetros, además de la matriz, el ancho de la barra como el espacio entre cada una:
 
 ```{r mostrar_frecuencias}
 mostrar_frecuencias <- function(matriz, ancho, espacio) {
-  par(mar = c(0,4,5,0))
+  par(xpd = TRUE, mar = c(0,4,5,6))
   barplot(matriz.frecuencias, col = c("red", "white"), width = ancho, 
           space = espacio, xaxt = "n", yaxt = "n",
-          ylab = "MODALIDAD", cex.lab = 1.25)
+          ylab = "PUNTUACION", cex.lab = 1.25)
   
   pos_inicial <- espacio + ancho/2
   longitud <- length(colnames(matriz)) - 1
   v <- Reduce(function(v, x) v + 2 * ancho/2 + espacio, x=numeric(longitud),  
               init=pos_inicial, accumulate=TRUE)
-  axis(3, at = v, colnames(matriz), col.axis = "blue")
+  axis(side = 3, at = v, colnames(matriz), col.axis = "blue", font = 2)
   mtext("SEMANAS", side = 3, line = 2.2, cex = 1.25)
   
   pos_inicial_2 <- ancho / 2
   longitud_2 <- length(row.names(matriz)) / 2 - 1
-  w <- Reduce(function(w, x) w + 2* ancho/2, x=numeric(longitud_2),
+  w <- Reduce(function(w, x) w + 2 * ancho/2, x=numeric(longitud_2),
               init=pos_inicial_2, accumulate=TRUE)
-  axis(2, at = w, row.names(matriz)[seq(1,length(row.names(matriz)),2)], 
-       col.axis = "blue", cex = 125)
+  axis(side = 2, at = w, row.names(matriz)[seq(1,length(row.names(matriz)),2)], 
+       col.axis = "blue", cex = 125, font = 2)
+  
   title("FRECUENCIAS DE ARDOR DE HIDROGEL - SEMANAS 1 A LA 7", line = 4, cex.main = 1.25)
+  legend(x= "topright",  legend = c("FREC. ARDOR", "FREC. SIN ARDOR"), 
+       inset = c(-0.2, 0), fill = c("red", "white"), 
+       cex = 0.6, text.font = 2, bg = 'white') 
 }
 ```
 
-1. __Las barras que representen las frecuencias deben estar en rojo__ . Para que las barras que indican las frecuencias estén en color rojo, al realizar la función _barplot_ modificamos el vector de colores, cambiándose a _("red", "white")_ :
+1. __Las barras que representen las frecuencias deben estar en rojo__. Para que las barras que indican las frecuencias estén en color rojo, al realizar la función _barplot_ modificamos el vector de colores, cambiándose a _("red", "white")_ :
 
 ```
+par(xpd = TRUE, mar = c(0,4,5,6))
 barplot(matriz.frecuencias, col = c("red", "white"), width = ancho, 
           space = espacio, xaxt = "n", yaxt = "n",
           ylab = "MODALIDAD", cex.lab = 1.25)
 ```
 
-2. __Los números de las semanas deben estar en azul y en la parte superior del gráfico en lugar del fondo__ . Si nos fijamos en la función _barplot_ anterior, vemos que tanto el parámetro _xaxt_ como _yaxt_ están a "n", lo que significa que por el momento no se muestran los ejes. Esto es debido a que mediante la función _axis_ que ofrece el paquete _graphics_ es posible crear ejes de una forma mucho más personalizada. Por ello, para crear el eje X utilizamos dicha función, situándolo en la parte superior ( __posicion = 3__ ). Por otra parte, para denotar la posición donde debe situarse cada semana, mediante una función _Reduce_ calculamos la distancia de separación entre semana y semana, en base al ancho de las barras y a la distancia de separación entre ellas pasadas como parámetro. Finalmente, coloreamos de azul el eje mediante el parámetro _col.axis_ , además de añadirle un título por medio de la función _mtext_ (mediante los campos _side_ = 3 y _line_ = 2, situándolo en la parte superior):
+2. __Los números de las semanas deben estar en azul y en la parte superior del gráfico en lugar del fondo__. Si nos fijamos en la función _barplot_ anterior, vemos que tanto el parámetro _xaxt_ como _yaxt_ están a "n", lo que significa que por el momento no se muestran los ejes. Esto es debido a que mediante la función _axis_ que ofrece el paquete _graphics_ es posible crear ejes de una forma mucho más personalizada. Por ello, para crear el eje X utilizamos dicha función, situándolo en la parte superior ( __side = 3__ ). Por otra parte, para denotar la posición en el eje X donde debe situarse cada semana, mediante una función _Reduce_ calculamos la distancia de separación entre semana y semana, en base al ancho de las barras y a la distancia de separación entre ellas pasadas como parámetro. Finalmente, coloreamos de azul el eje mediante el parámetro _col.axis_, además de añadirle un título por medio de la función _mtext_ (mediante los campos _side_ = 3 y _line_ = 2, situándolo en la parte superior):
 
 ```
 pos_inicial <- espacio + ancho/2
-  longitud <- length(colnames(matriz)) - 1
-  v <- Reduce(function(v, x) v + 2 * ancho/2 + espacio, x=numeric(longitud),  
-              init=pos_inicial, accumulate=TRUE)
-  axis(3, at = v, colnames(matriz), col.axis = "blue")
-  mtext("SEMANAS", side = 3, line = 2.2, cex = 1.25)
+longitud <- length(colnames(matriz)) - 1
+v <- Reduce(function(v, x) v + 2 * ancho/2 + espacio, x=numeric(longitud),  
+            init=pos_inicial, accumulate=TRUE)
+axis(side = 3, at = v, colnames(matriz), col.axis = "blue")
+mtext("SEMANAS", side = 3, line = 2.2, cex = 1.25)
 ```
 
-3. __Los números de modalidad deben estar a la izquierda, en azul. Agrega un título al gráfico__ . De forma similar al eje X, mediante la función _axis_ creamos el eje Y ( __posicion = 2__ ). Para denotar la posición donde debe situarse cada modalidad, nuevamente mediante una función _Reduce_
-calculamos la distancia de separación entre cada valor (dado que en el eje Y no existe separación entre barras, sólo se tiene en cuenta el ancho). Finalmente, mediante la función _title_ añadimos un título al gráfico, situándolo en la parte superior ( __line = 4__ ):
+3. __Los números de modalidad deben estar a la izquierda, en azul. Agrega un título al gráfico__. De forma similar al eje X, mediante la función _axis_ creamos el eje Y ( __side = 2__ ). Para denotar la posición donde debe situarse cada modalidad, nuevamente mediante una función _Reduce_ calculamos la distancia de separación entre cada valor (dado que en el eje Y no existe separación entre barras, sólo se tiene en cuenta el ancho). Finalmente, mediante la función _title_ añadimos un título al gráfico, situándolo en la parte superior ( __line = 4__ ), así como una leyenda en la parte superior derecha:
 
 ```
 pos_inicial_2 <- ancho / 2
 longitud_2 <- length(row.names(matriz)) / 2 - 1
-w <- Reduce(function(w, x) w + 2* ancho/2, x=numeric(longitud_2),
+w <- Reduce(function(w, x) w + 2 * ancho/2, x=numeric(longitud_2),
             init=pos_inicial_2, accumulate=TRUE)
-axis(2, at = w, row.names(matriz)[seq(1,length(row.names(matriz)),2)], 
+axis(side = 2, at = w, row.names(matriz)[seq(1,length(row.names(matriz)),2)], 
      col.axis = "blue", cex = 125)
 title("FRECUENCIAS DE ARDOR DE HIDROGEL - SEMANAS 1 A LA 7", line = 4, cex.main = 1.25)
+legend(x= "topright",  legend = c("FREC. ARDOR", "FREC. SIN ARDOR"), 
+       inset = c(-0.2, 0), fill = c("red", "white"), 
+       cex = 0.6, text.font = 2, bg = 'white') 
+```
+
+Si nos fijamos en la función _axis_ podemos observar que, del conjunto de nombres de fila que previamente hemos asociado a la matriz:
+
+$$(1, 1 - f_1, 2, 1 - f_2, 3, 1 - f_3, 4, 1 - f_4)$$
+Sólo extraemos aquellos situados en las posiciones impares, esto es, __los número de modalidad__ :
+
+```
+row.names(matriz)[seq(1,length(row.names(matriz)),2)]
 ```
 
 Una vez creada la función, realizamos la prueba final, empleando como ancho de barra 1 y espacio 0.2 entre barra y barra (en el eje X):
 
-```{r prueba_mostrar_frecuencias, fig.width=9, fig.height=8}
+```{r prueba_mostrar_frecuencias, fig.width=7, fig.height=6}
 mostrar_frecuencias(matriz.frecuencias, 1, 0.2)
 ```

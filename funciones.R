@@ -1,5 +1,4 @@
 # Pregunta 1
-# aoartadi a)
 generar_boletos <- function(num.digitos) {
   numeros <- seq(0,9)
   lista.combinaciones <- rep(list(numeros), num.digitos)
@@ -18,12 +17,13 @@ moda <- function(vector.suma) {
   vector.suma.unico <- unique(vector.suma)
   vector.suma.unico[which.max(tabulate(vector.suma + 1))]
 }
-paste("La suma de los numeros de un boleto que mas se repite: ", moda(suma.combinaciones))
+paste("La suma de los numeros que mas se repite es ", moda(suma.combinaciones))
 
 # Pregunta 2
 # apartado a)
 cod.ccaa <- read.table("CodCCAA.csv", sep = "\t", header = TRUE)
 cod.prov <- read.table("CodProv.txt", sep = ",", header = TRUE)
+# na.string = "" => Para no confundir NA (Navarra) con un valor NA
 datos.provincias <- read.table("datos_provincias.csv", sep = ",", header = TRUE, na.strings = "")
 
 # Renombramos las columnas que presentan tildes (ademas del campo denotado como "X")
@@ -61,7 +61,11 @@ datos.ccaa <- datos.ccaa[, -c(9, 10)]
 seleccionar_datos_comunidad <- function(datos.ccaa, dni) {
   subset(datos.ccaa, Num == (dni %% 17))
 }
-seleccionar_datos_comunidad(datos.ccaa, 12345678)
+# Prueba con Castilla y Leon (DNI = 12345678 mod 17 -> 6)
+head(seleccionar_datos_comunidad(datos.ccaa, 12345678))
+
+# Prueba con Cantabria (DNI = 54003003 mod 17 -> 4)
+datos.filtrado <- seleccionar_datos_comunidad(datos.ccaa, 54003004)
 
 # apartado c)
 # Inicialmente, agrupamos por fecha
@@ -80,14 +84,14 @@ agrupar_datos <- function(datos.ccaa, clave, columnas) {
   colnames(df.agrupado) <- c(clave, columnas)
   df.agrupado
 }
-datos.agrupados.fecha <- agrupar_datos(datos.ccaa, "fecha", "num_casos")
+datos.agrupados.fecha <- agrupar_datos(datos.filtrado, "fecha", "num_casos")
 
 # Lo convertimos a tipo de dato Date (en lugar de factor)
-datos.agrupados.fecha$fecha <- as.Date(datos.agrupados.fecha$fecha)
+datos.agrupados.fecha[, "fecha"] <- as.Date(datos.agrupados.fecha[, "fecha"])
 
 imprimir_grafica <- function(datos, eje.x, eje.y, divisiones, color) {
   par(mar=c(11,4,4,1), xaxt = "n")
-  grafico.lineas <- plot(x = datos[, eje.x], y = datos[, eje.y], log = "y", type = "l", 
+  grafico.lineas <- plot(x = datos[, eje.x], y = datos[, eje.y], type = "l", 
                          main = "Evolucion del numero de casos COVID-19", 
                          xlab = "", ylab = "Numero de casos", font.lab = 2, 
                          col = color, las = 2, lwd = 2)
@@ -105,11 +109,11 @@ imprimir_grafica <- function(datos, eje.x, eje.y, divisiones, color) {
         font = 2)
 }
 # Prueba imprimir_grafica
-imprimir_grafica(datos.agrupados.fecha, "fecha", "num_casos", 15, "red")
+imprimir_grafica(datos.agrupados.fecha, "fecha", "num_casos", 20, "red")
 
 # apartado d)
-casos.por.columnas <- agrupar_datos(datos.ccaa, "fecha", c("num_casos", "num_casos_prueba_pcr", "num_casos_prueba_test_ac", "num_casos_prueba_otras", "num_casos_prueba_desconocida"))
-casos.por.columnas$fecha <- as.Date(casos.por.columnas$fecha)
+casos.por.columnas <- agrupar_datos(datos.filtrado, "fecha", c("num_casos", "num_casos_prueba_pcr", "num_casos_prueba_test_ac", "num_casos_prueba_otras", "num_casos_prueba_desconocida"))
+casos.por.columnas[, "fecha"] <- as.Date(casos.por.columnas[, "fecha"])
 
 imprimir_multiples_lineas <- function(datos, eje.x, eje.y, paleta) {
   imprimir_grafica(datos, eje.x, eje.y[1], 15, paleta[1])
@@ -201,24 +205,28 @@ barplot(matriz.frecuencias, col = c("black", "white"))
 
 # apartado d)
 mostrar_frecuencias <- function(matriz, ancho, espacio) {
-  par(mar = c(0,4,5,0))
+  par(xpd = TRUE, mar = c(0,4,5,6))
   barplot(matriz.frecuencias, col = c("red", "white"), width = ancho, 
           space = espacio, xaxt = "n", yaxt = "n",
-          ylab = "MODALIDAD", cex.lab = 1.25)
+          ylab = "PUNTUACION", cex.lab = 1.25)
   
   pos_inicial <- espacio + ancho/2
   longitud <- length(colnames(matriz)) - 1
   v <- Reduce(function(v, x) v + 2 * ancho/2 + espacio, x=numeric(longitud),  
               init=pos_inicial, accumulate=TRUE)
-  axis(3, at = v, colnames(matriz), col.axis = "blue")
+  axis(side = 3, at = v, colnames(matriz), col.axis = "blue", font = 2)
   mtext("SEMANAS", side = 3, line = 2.2, cex = 1.25)
   
   pos_inicial_2 <- ancho / 2
   longitud_2 <- length(row.names(matriz)) / 2 - 1
-  w <- Reduce(function(w, x) w + 2* ancho/2, x=numeric(longitud_2),
+  w <- Reduce(function(w, x) w + 2 * ancho/2, x=numeric(longitud_2),
               init=pos_inicial_2, accumulate=TRUE)
-  axis(2, at = w, row.names(matriz)[seq(1,length(row.names(matriz)),2)], 
-       col.axis = "blue", cex = 125)
+  axis(side = 2, at = w, row.names(matriz)[seq(1,length(row.names(matriz)),2)], 
+       col.axis = "blue", cex = 125, font = 2)
+  
   title("FRECUENCIAS DE ARDOR DE HIDROGEL - SEMANAS 1 A LA 7", line = 4, cex.main = 1.25)
+  legend(x= "topright",  legend = c("FREC. ARDOR", "FREC. SIN ARDOR"), 
+         inset = c(-0.2, 0), fill = c("red", "white"), 
+         cex = 0.6, text.font = 2, bg = 'white') 
 }
 mostrar_frecuencias(matriz.frecuencias, 1, 0.2)
