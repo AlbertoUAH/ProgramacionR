@@ -269,7 +269,8 @@ Por ello, tanto para el apartado c) como d) creamos una función, denominada __i
 ```{r imprimir_grafica}
 imprimir_grafica <- function(datos, eje.x, eje.y, divisiones, color, segmentos = FALSE) {
   par(mar=c(11,4,4,1), xaxt = "n")
-  grafico.lineas <- plot(x = datos[, eje.x], y = datos[, eje.y], type = "l", 
+  grafico.lineas <- plot(x = datos[, eje.x], y = datos[, eje.y], type = "l",
+                         ylim = range(pretty(c(0, datos[, eje.y]))),
                          main = "EVOLUCION NUMERO DE CASOS COVID-19", 
                          xlab = "", ylab = "NUMERO DE CASOS", font.lab = 2, 
                          col = color, las = 2, lwd = 2)
@@ -403,13 +404,13 @@ Analizando las columnas, podemos comprobar cómo los campos de cadenas de caract
 
 ### b) Obtener una nueva variable overall que de la puntuación media de los cuatro test para cada estudiante suponiendo que el último test se pondera el doble.
 
-Para este apartado creamos nuevamente una función, denominada __calcular_total_puntuacion__, que recibe como parámetros el DataFrame con las puntuaciones, la columna con el identificador del alumno así como un vector con las puntuaciones de cada test. Sobre dicho DataFrame aplicamos la función _cbind_, concatenando las columnas pasadas como parámetro junto con una nueva columna (OVERALL) con la puntuación total. Para su cálculo, mediante la función _apply_ suma las n - 1 primeras columnas y, con la n-ésima columna, multiplica su valor por dos, sumándolo con el resto:
+Para este apartado creamos nuevamente una función, denominada __calcular_total_puntuacion__, que recibe como parámetros el DataFrame con las puntuaciones, la columna con el identificador del alumno así como un vector con las puntuaciones de cada test. Sobre dicho DataFrame aplicamos la función _cbind_, concatenando las columnas pasadas como parámetro junto con una nueva columna (OVERALL) con la puntuación total. Para su cálculo, mediante la función _apply_ aplicamos la función _mean_ sobre las n - 1 primeras columnas y, con la n-ésima columna, añade su valor multiplicado por dos:
 
 ```{r calcular_total_puntuacion}
 calcular_total_puntuacion <- function(puntuaciones, id.alumno, columnas.test) {
   cbind(puntuaciones[c(id.alumno, columnas.test)], 
             OVERALL = apply(puntuaciones[columnas.test], 1, function(x) {
-              sum(x[1:length(x) - 1]) + 2*x[length(x)]
+              mean(c((x[1:length(x) - 1]), 2*x[length(x)]))
   }))
 }
 ```
@@ -565,7 +566,7 @@ A través del gráfico anterior, podemos comprobar como, con el transcurso de la
 
 ### d) Cambie el gráfico anterior para que las barras que representan las frecuencias estén en rojo. Los números de las semanas deben estar en azul y en la parte superior del gráfico en lugar del fondo. Los números de modalidad deben estar a la izquierda, en azul. Agrega un título al gráfico.
 
-Para resolver este apartado, creamos una función denominada __mostrar_frecuencias__, que recibe como parámetros, además de la matriz, el ancho de la barra como el espacio entre cada una:
+Para resolver este apartado, creamos una función denominada __mostrar_frecuencias__, que recibe como parámetros, además de la matriz, el ancho de la barra así como el espacio entre cada una:
 
 ```{r mostrar_frecuencias}
 mostrar_frecuencias <- function(matriz, ancho, espacio) {
@@ -603,7 +604,7 @@ barplot(matriz.frecuencias, col = c("red", "white"), width = ancho,
           ylab = "MODALIDAD", cex.lab = 1.25)
 ```
 
-2. __Los números de las semanas deben estar en azul y en la parte superior del gráfico en lugar del fondo__. Si nos fijamos en la función _barplot_ anterior, vemos que tanto el parámetro _xaxt_ como _yaxt_ están a "n", lo que significa que por el momento no se muestran los ejes. Esto es debido a que mediante la función _axis_ que ofrece el paquete _graphics_ es posible crear ejes de una forma mucho más personalizada. Por ello, para crear el eje X utilizamos dicha función, situándolo en la parte superior ( __side = 3__ ). Por otra parte, para denotar la posición en el eje X donde debe situarse cada semana, mediante una función _Reduce_ calculamos la distancia de separación entre semana y semana, en base al ancho de las barras y a la distancia de separación entre ellas pasadas como parámetro. Finalmente, coloreamos de azul el eje mediante el parámetro _col.axis_.
+2. __Los números de las semanas deben estar en azul y en la parte superior del gráfico en lugar del fondo__. Si nos fijamos en la función _barplot_ anterior, vemos que tanto el parámetro _xaxt_ como _yaxt_ están a "n", lo que significa que por el momento no se muestran los ejes. Esto es debido a que mediante la función _axis_ que ofrece el paquete _graphics_ es posible crear ejes de una forma mucho más personalizada. Por ello, para crear el eje X utilizamos dicha función, situándolo en la parte superior ( __side = 3__ ). Por otra parte, para denotar la posición en el eje X donde debe situarse cada número de semana, mediante la función _Reduce_ calculamos la distancia de separación entre campo y campo, en base al ancho de las barras y a la distancia de separación entre ellas pasadas como parámetro. Finalmente, coloreamos de azul el eje mediante el parámetro _col.axis_.
 
 ```
 pos_inicial <- espacio + ancho/2
@@ -631,13 +632,13 @@ legend(x= "topright",  legend = c("FREC. ARDOR", "FREC. SIN ARDOR"),
 Si nos fijamos en la función _axis_ podemos observar que, del conjunto de nombres de fila que previamente hemos asociado a la matriz:
 
 $$(1, 1 - f_1, 2, 1 - f_2, 3, 1 - f_3, 4, 1 - f_4)$$
-Sólo extraemos aquellos situados en las posiciones impares, esto es, __los número de modalidad__ :
+Sólo extraemos aquellos situados en las posiciones impares, esto es, __los números de modalidad__ :
 
 ```
 row.names(matriz)[seq(1,length(row.names(matriz)),2)]
 ```
 
-Una vez creada la función, realizamos la prueba final, empleando como ancho de barra 1 y espacio 0.2 entre barra y barra (en el eje X):
+Una vez creada la función, realizamos la prueba final, empleando como ancho de barra 1 y espacio 0.2 entre barra y barra (eje X):
 
 ```{r prueba_mostrar_frecuencias, fig.width=7, fig.height=6}
 mostrar_frecuencias(matriz.frecuencias, 1, 0.2)

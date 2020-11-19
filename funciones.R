@@ -1,3 +1,5 @@
+# Script Practica Programacion R
+# Author: Alberto Fernandez Hernandez
 # Pregunta 1
 generar_boletos <- function(num.digitos) {
   numeros <- seq(0,9)
@@ -64,7 +66,7 @@ seleccionar_datos_comunidad <- function(datos.ccaa, dni) {
 # Prueba con Castilla y Leon (DNI = 12345678 mod 17 -> 6)
 head(seleccionar_datos_comunidad(datos.ccaa, 12345678))
 
-# Prueba con Cantabria (DNI = 54003003 mod 17 -> 4)
+# Prueba con Castilla La-Mancha (DNI = 54003003 mod 17 -> 4)
 datos.filtrado <- seleccionar_datos_comunidad(datos.ccaa, 54003004)
 
 # apartado c)
@@ -91,7 +93,9 @@ datos.agrupados.fecha[, "fecha"] <- as.Date(datos.agrupados.fecha[, "fecha"])
 
 imprimir_grafica <- function(datos, eje.x, eje.y, divisiones, color, segmentos = FALSE) {
   par(mar=c(11,4,4,1), xaxt = "n")
-  grafico.lineas <- plot(x = datos[, eje.x], y = datos[, eje.y], type = "l", 
+  print(range(pretty(c(0, datos[, eje.y]))))
+  grafico.lineas <- plot(x = datos[, eje.x], y = datos[, eje.y], type = "l",
+                         ylim = range(pretty(c(0, datos[, eje.y]))),
                          main = "EVOLUCION NUMERO DE CASOS COVID-19", 
                          xlab = "", ylab = "NUMERO DE CASOS", font.lab = 2, 
                          col = color, las = 2, lwd = 2)
@@ -123,7 +127,7 @@ imprimir_multiples_lineas <- function(datos, eje.x, eje.y, paleta) {
   }, eje.y, paleta)
   
   eje.y <- lapply(gsub('_', ' ', eje.y), toupper)
-  legend(x= "topright",  legend = eje.y, fill = paleta, cex = 0.50, text.font = 2)
+  legend(x= "top",  legend = eje.y, fill = paleta, cex = 0.50, text.font = 2)
 }
 
 # Prueba imprimir_multiples_lineas
@@ -146,7 +150,7 @@ sapply(punt, class)
 calcular_total_puntuacion <- function(puntuaciones, id.alumno, columnas.test) {
   cbind(puntuaciones[c(id.alumno, columnas.test)], 
             OVERALL = apply(puntuaciones[columnas.test], 1, function(x) {
-              sum(x[1:length(x) - 1]) + 2*x[length(x)]
+                mean(c((x[1:length(x) - 1]), 2*x[length(x)]))
   }))
 }
 overall <- calcular_total_puntuacion(punt, "SEGSOC", c("TEST1", "TEST2", "TEST3", "TEST4"))
