@@ -386,6 +386,16 @@ imprimir_multiples_lineas(casos.por.columnas, "fecha", columnas, paleta)
 
 Analizando la gráfica resultante podemos comprobar cómo desde el comienzo de la pandemia la mayoría de los casos por COVID-19 son diagnosticados por pruebas PCR. Por el contrario, otras pruebas como los Anti-cuerpos, "Otras" o "Desconocida" apenas se emplearon en la Comunidad Autónoma, salvo casos excepcionales.
 
+Para demostrar que cada columna se está mostrando correctamente, realizamos una pequeña prueba a nivel nacional, __con los datos de todas las CCAA__:
+
+\newpage
+```{r prueba_imprimir_multiples_lineas_2, fig.width=9, fig.height=8, fig.cap="Gráfica con el número de casos de cada categoría en España"}
+casos.por.columnas <- agrupar_datos(datos.ccaa, "fecha", columnas)
+casos.por.columnas[, "fecha"] <- as.Date(casos.por.columnas[, "fecha"])
+
+imprimir_multiples_lineas(casos.por.columnas, "fecha", columnas, paleta)
+```
+
 ## Pregunta 3. Consideramos un fichero de datos en formato SAS de nombre "punt.sas7bdat" que contiene datos sobre alumnos matriculados en diversos cursos.
 
 ### a) Importa el fichero de datos y guárdalo en un objeto de nombre punt. Comprueba la estructura del objeto punt. Si es necesario conviértelo en un data frame.
