@@ -28,7 +28,7 @@ $$
 \end{aligned}
 $$
 
-Considerando lo anterior, crearemos una función denominada __generar_boletos__, cuyo único parámetro será el número de dígitos que forman la serie. En primer lugar, dado que cada número se puede repetir num_digitos veces (una por cada posición), repetiremos la lista de posibles números (0-9) tantas veces como dígitos tenga el número. Finalmente, mediante la función _expand.grid_ se genera un DataFrame con todas las posibles combinaciones a partir del vector anterior (de cara al apartado b):
+Considerando lo anterior, creamos una función denominada __generar_boletos__, cuyo único parámetro será el número de dígitos que forman la serie. En primer lugar, dado que cada número se puede repetir num_digitos veces (una por cada posición), repetimos la lista de posibles números (0-9) tantas veces como dígitos tenga el número. Finalmente, mediante la función _expand.grid_ se genera un DataFrame con todas las posibles combinaciones a partir del vector anterior (de cara al apartado b):
 
 ```{r funcion generar_boletos}
 generar_boletos <- function(num.digitos) {
@@ -43,8 +43,8 @@ df.combinaciones.sorteo <- generar_boletos(4)
 Una vez ejecutada la función, echemos un primer vistazo al DataFrame:
 
 ```{r prueba generar_boletos}
-head(df.combinaciones.sorteo)
-tail(df.combinaciones.sorteo)
+head(df.combinaciones.sorteo, 5)
+tail(df.combinaciones.sorteo, 5)
 
 # Comprobamos que el numero de filas es 10000
 nrow(df.combinaciones.sorteo)
@@ -74,12 +74,13 @@ suma.combinaciones <- apply(df.combinaciones.sorteo, 1, sum)
 suma.combinaciones[1:20]
 ```
 
-Por desgracia, R no dispone de una función que permita calcular la moda, por lo que habrá que diseñarla desde cero, pasando como parámetro el vector anterior con las sumas de cada combinación. Desde esta función creamos, en primer lugar, un vector auxiliar que contenga valores únicos del vector pasado por parámetro. A continuación, obtenemos el número de repeticiones por cada suma, mediante la función _tabulate_. No obstante, y dado que _tabulate_ no cuenta el número de veces que se repite el cero, debemos sumar 1 a cada elemento, de forma que el cero si pueda ser contado. De dicho vector obtenemos el índice de la suma con mayor número de repeticiones ( _which.max_ ), para finalmente recuperar su correspondiente valor:
+Por desgracia, R no dispone de una función que permita calcular la moda, por lo que habrá que diseñarla desde cero, pasando como parámetro el vector anterior con las sumas de cada combinación. Desde esta función creamos, en primer lugar, una tabla con las frecuencias de aparición de cada suma, empleando la función _table_. A continuación, obtenemos el/los índices con la/s suma/s de mayor frecuencia de aparición ( _max_ ):
 
 ```{r funcion moda}
 moda <- function(vector.suma) {
-  vector.suma.unico <- unique(vector.suma)
-  vector.suma.unico[which.max(tabulate(vector.suma + 1))]
+  vector.suma.frecuencias <- table(vector.suma)
+  as.numeric(names(vector.suma.frecuencias)[vector.suma.frecuencias == 
+                  max(vector.suma.frecuencias)])
 }
 ```
 
@@ -87,7 +88,7 @@ Una vez definida la función, realizamos la correspondiente prueba:
 
 ```{r prueba funcion moda}
 # Prueba funcion moda
-paste("La suma de los numeros que mas se repite es ", moda(suma.combinaciones))
+cat("La suma de los numeros que mas se repite es ", moda(suma.combinaciones))
 ```
 
 Esto último es posible comprobarlo mediante una pequeña tabla dinámica en Excel, contando el número de apariciones en _suma.combinaciones_ :
@@ -141,7 +142,7 @@ datos.provincias <- transform(datos.provincias, provincia_iso =
                         paste("ES-", provincia_iso, sep = ""))
 ```
 
-A continuación, definiremos una función ( __juntar_tres_dataframes__ ), que presenta como parámetros el vector con los DataFrames a unir, así como la lista de claves con las que unir dichas tablas:
+A continuación, definimos una función ( __juntar_tres_dataframes__ ), que presenta como parámetros el vector con los DataFrames a unir, así como la lista de claves con las que unir dichas tablas:
 
 ```{r funcion juntar_tres_dataframes}
 juntar_tres_dataframes <- function(vector.df, vector.claves) {
@@ -208,15 +209,16 @@ seleccionar_datos_comunidad <- function(datos.ccaa, dni) {
 }
 
 # Prueba con Castilla y Leon (DNI = 12345678 mod 17 -> 6)
-head(seleccionar_datos_comunidad(datos.ccaa, 12345678))
+head(seleccionar_datos_comunidad(datos.ccaa, 12345678), 5)
 
-# Prueba con Castilla la Mancha (DNI = 54003004 mod 17 -> 5)
-datos.filtrado <- seleccionar_datos_comunidad(datos.ccaa, 54003004)
+# Prueba con Cantabria (DNI = 54003003 mod 17 -> 4)
+datos.filtrado <- seleccionar_datos_comunidad(datos.ccaa, 54003003)
+head(datos.filtrado, 5)
 ```
 
 ### c) Realizar un gráfico que muestre adecuadamente la evolución de los casos nuevos. Justifica el gráfico elegido.
 
-__NOTA__: para la realización de este apartado se utilizarán los datos filtrados por el DNI 54003004, correspondiente con la Comunidad Autónoma de Castilla La-Mancha, aunque también puede emplearse el _dataset_ completo.
+__NOTA__: para la realización de este apartado se utilizarán los datos filtrados por el DNI el cual tengo asociado: 54003003, correspondiente con la __Comunidad Autónoma de Cantabria__, aunque también puede emplearse el _dataset_ completo o de cualquier otra comunidad gracias al dinamismo de las funciones.
 
 Para este apartado (y de forma previa a su implementación gráfica), la mejor forma de representación sería __agrupando el número de casos por fecha__, de forma que podamos tener el total de casos diarios. Para ello, y de cara tanto al apartado c) como d), diseñamos una función denominada __agrupar_datos__ que recibe como parámetros el DataFrame a agrupar (datos.ccaa), el campo sobre el que agrupar (clave), así como un vector de columnas a filtrar.
 
@@ -246,13 +248,14 @@ Una vez definida la función, __agrupamos el número de casos (num_casos) por ca
 # Prueba agrupar_datos
 datos.agrupados.fecha <- agrupar_datos(datos.filtrado, "fecha", "num_casos")
 # Echamos un primer vistazo a los datos obtenidos
-head(datos.agrupados.fecha)
+tail(datos.agrupados.fecha)
 ```
 
 Una vez tengamos los datos agrupados, de cara a facilitar la representación gráfica cambiaremos el tipo de dato al formato fecha ( _factor_ a _Date_ ):
 
 ```{r conversion de factor a Date, campo fecha}
 datos.agrupados.fecha[, "fecha"] <- as.Date(datos.agrupados.fecha[, "fecha"])
+
 sapply(datos.agrupados.fecha, class)
 ```
 
@@ -262,9 +265,31 @@ Una vez preprocesado el DataFrame, es momento de realizar su representación gr�
 nrow(datos.agrupados.fecha)
 ```
 
-Es decir, supondría tener que representar en un mismo eje 237 barras en las que se muestra la distribución del número de casos a lo largo del tiempo, lo que podría dificultar el entendimiento del gráfico. Por el contrario, utilizar un gráfico de líneas puede resultar una mayor ventaja, permitiendo mostrar los cambios que sufre una variable __a lo largo del tiempo__, dado que lo que se desea representar es, al fin y al cabo, una serie temporal en el que se muestra una sucesión del número de casos por COVID-19, donde lo que se analiza es su tendencia (ascendente o descendente) e incluso la búsqueda de posibles patrones, pero no la de proporcionar "lecturas cuantitativas" de gran precisión. Por el contrario, un gráfico de barras se emplea comunmente para comparar datos con un número limitado de categorías o grupos, sobretodo cuando la muestra no es muy grande.
+Es decir, supondría tener que representar en un mismo eje 237 barras en las que se muestra la distribución del número de casos a lo largo del tiempo, lo que podría dificultar el entendimiento del gráfico. Por ello, una alternativa sería agrupar nuevamente los datos __por meses__, reduciendo con ello el número de barras a representar. Para ello, realizamos una agrupación por cada mes, mediante la función _format_, representando el diagrama de barras empleando la función _barplot_ tal y como se muestra a continuación:
 
-Por ello, tanto para el apartado c) como d) creamos una función, denominada __imprimir_grafica__, recibiendo como parámetros el conjunto de datos a mostrar, las columnas empleadas para los eje X e Y, el número de divisiones a realizar en el eje X, así como el color del gráfico y un parámetro ( __segmentos__ ) que permite, en caso de estar a TRUE, crear un segmento por cada fecha en el eje, uniéndolo con su correspondiente valor en el gráfico:
+```{r prueba_diagrama_barras}
+agrupacion_v2 <- by(datos.agrupados.fecha, list(format(datos.agrupados.fecha[, "fecha"], "%m")),
+  function(fila) {
+    data.frame(
+      mes = unique(format(fila[, "fecha"], "%m")),
+      num_casos = unique(sum(fila[, "num_casos"]))
+    )
+})
+agrupacion_v2 <- do.call(rbind, agrupacion_v2)
+```
+\newpage
+
+```{r prueba_diagrama_barras_2, fig.width=6, fig.height=5, fig.cap="Gráfico de barras con la evolución del número de casos"}
+barplot(agrupacion_v2[, "num_casos"], names = agrupacion_v2[, "mes"],
+        ylab = "NUMERO DE CASOS", xlab = "MESES", 
+        main = "EVOLUCION NUMERO DE CASOS COVID-19")
+```
+
+Sin embargo, nos encontramos con un inconveniente: __¿Qué ha ocurrido en los meses de marzo, abril, agosto o septiembre?__. Es decir, la incidencia acumulada ha sido alta, pero ¿Ha sido así durante todo el mes? ¿O ha habido semanas con un mayor repunte? A primera vista, con tan solo nueve barras somos incapaces de comprobarlo, es decir, perdemos información al agrupar. 
+
+Por el contrario, utilizar un gráfico de líneas puede resultar una mayor ventaja, permitiendo mostrar los cambios que sufre una variable __a lo largo del tiempo__, dado que lo que se desea representar es, al fin y al cabo, una serie temporal en el que se muestra una sucesión del número de casos por COVID-19, donde lo que se analiza es su tendencia (ascendente o descendente) entre días o semanas (no solo entre meses). Por el contrario, un gráfico de barras se emplea comunmente para comparar datos con un número limitado de categorías o grupos, sobretodo cuando la muestra no es muy grande.
+
+Por ello, tanto para el apartado c) como d) creamos una función, denominada __imprimir_grafica__, recibiendo como parámetros el conjunto de datos a mostrar, las columnas empleadas para los ejes X e Y, el número de divisiones a realizar en el eje X, así como el color del gráfico y un parámetro ( __segmentos__ ) que permite, en caso de estar a TRUE, crear un segmento por cada fecha en el eje, uniéndolo con su correspondiente valor en el gráfico:
 
 ```{r imprimir_grafica}
 imprimir_grafica <- function(datos, eje.x, eje.y, divisiones, color, segmentos = FALSE) {
@@ -305,12 +330,13 @@ De la función anterior, quisiera destacar algunos detalles relevantes:
 
 Una vez definida la función, realizamos la prueba:
 
-```{r prueba_imprimir_grafica, fig.width=9, fig.height=8}
+\newpage
+```{r prueba_imprimir_grafica, fig.width=9, fig.height=8, fig.cap="Gráfica con el número de casos en Cantabria"}
 # Prueba imprimir_grafica
 imprimir_grafica(datos.agrupados.fecha, "fecha", "num_casos", 15, "red", TRUE)
 ```
 
-Analizando la evolución del número de casos, podemos observar el elevado pico de contagios producido durante los primeros meses de pandemia, en especial cuando las medidas en Europa (y en concreto España), no eran lo suficientemente estrictas. Tras la declaración del estado de alarma el día 14 de marzo, los efectos del confinamiento se tradujeron en un descenso lento y gradual en el número de casos diarios, llegando a mínimos a mediados de junio. No obstante, con la apertura gradual de fronteras y negocios la curva de contagios comenzó a crecer desde comienzos de verano, aunque de forma menos "apuntalada" que durante la "primera ola", alcanzando en el mes de septiembre valores cercanos a los meses de abril y marzo.
+Analizando la evolución del número de casos, podemos observar el elevado pico de contagios producido durante los primeros meses de pandemia, en especial cuando las medidas en Europa (y en concreto España), no eran lo suficientemente estrictas. Tras la declaración del estado de alarma el día 14 de marzo, los efectos del confinamiento se tradujeron en un descenso lento en el número de casos diarios, aunque no constantes, sino que observamos numerosos "repuntes" en el número de casos durante los meses de marzo y abril (algo que no podíamos comprobar con un diagrama de barras). No obstante, con la apertura gradual de fronteras y negocios la curva de contagios comenzó a crecer desde comienzos de verano, aunque de forma menos "apuntalada" , alcanzando en el mes de septiembre valores cercanos a los meses de abril y marzo aunque, al igual que en la "primera ola", con contínuos repuntes en el número de casos.
 
 Cabe destacar, especialmente, la caída en el número de contagios a partir del día 22 de septiembre, lo que puede deberse a una falta de datos por parte de la Comunidad Autónoma, por lo que el _dataset_ puede estar incompleto para dicho día.
 
@@ -349,7 +375,7 @@ imprimir_multiples_lineas <- function(datos, eje.x, eje.y, paleta) {
 
 A continuación, realizamos la correspondiente prueba, mostrando la evolución de cada columna a lo largo del tiempo:
 
-```{r prueba_imprimir_multiples_lineas, fig.width=9, fig.height=8}
+```{r prueba_imprimir_multiples_lineas, fig.width=9, fig.height=8, fig.cap="Gráfica con el número de casos de cada categoría en Cantabria"}
 # Prueba imprimir_multiples_lineas
 columnas <- c("num_casos", "num_casos_prueba_pcr", "num_casos_prueba_test_ac",
               "num_casos_prueba_otras", "num_casos_prueba_desconocida")
@@ -358,7 +384,7 @@ paleta <- c("red", "blue", "orange", "darkgreen", "purple")
 imprimir_multiples_lineas(casos.por.columnas, "fecha", columnas, paleta)
 ```
 
-Analizando la gráfica resultante podemos comprobar cómo durante el comienzo de la pandemia la mayoría de los casos no eran diagnosticados por pruebas PCR. Sin embargo, con el transcurso de las semanas y con el inicio de la "desescalada" en España, el número de casos por COVID-19 comenzaron a diagnosticarse, en su mayoría, por pruebas PCR, pudiendo observar cómo ambas gráficas evolucionan "a la par" a partir de finales de abril, aproximadamente. Por el contrario, otras pruebas como los Anti-cuerpos u "Otras" apenas se emplearon en la Comunidad Autónoma. Curiosamente, las pruebas etiquetadas como "desconocidas" únicamente se utilizaron durante los primeros meses, reduciéndose a cero desde principios del mes de mayo.
+Analizando la gráfica resultante podemos comprobar cómo desde el comienzo de la pandemia la mayoría de los casos por COVID-19 son diagnosticados por pruebas PCR. Por el contrario, otras pruebas como los Anti-cuerpos, "Otras" o "Desconocida" apenas se emplearon en la Comunidad Autónoma, salvo casos excepcionales.
 
 ## Pregunta 3. Consideramos un fichero de datos en formato SAS de nombre "punt.sas7bdat" que contiene datos sobre alumnos matriculados en diversos cursos.
 
@@ -404,7 +430,7 @@ Analizando las columnas, podemos comprobar cómo los campos de cadenas de caract
 
 ### b) Obtener una nueva variable overall que de la puntuación media de los cuatro test para cada estudiante suponiendo que el último test se pondera el doble.
 
-Para este apartado creamos nuevamente una función, denominada __calcular_total_puntuacion__, que recibe como parámetros el DataFrame con las puntuaciones, la columna con el identificador del alumno así como un vector con las puntuaciones de cada test. Sobre dicho DataFrame aplicamos la función _cbind_, concatenando las columnas pasadas como parámetro junto con una nueva columna (OVERALL) con la puntuación total. Para su cálculo, mediante la función _apply_ aplicamos la función _mean_ sobre las n - 1 primeras columnas y, con la n-ésima columna, añade su valor multiplicado por dos:
+Para este apartado creamos nuevamente una función, denominada __calcular_total_puntuacion__, que recibe como parámetros el DataFrame con las puntuaciones, la columna con el identificador del alumno así como un vector con las puntuaciones de cada test. Sobre dicho DataFrame aplicamos la función _cbind_, concatenando las columnas pasadas como parámetro junto con una nueva columna (OVERALL) con la puntuación media de cada alumno. Para su cálculo, mediante la función _apply_ aplicamos la función _mean_ sobre las n - 1 primeras columnas y, con la n-ésima columna, añade su valor multiplicado por dos:
 
 ```{r calcular_total_puntuacion}
 calcular_total_puntuacion <- function(puntuaciones, id.alumno, columnas.test) {
@@ -509,7 +535,7 @@ Cabe destacar que, a diferencia de los apartados anteriores, ya no disponemos de
 
 ### a) Para la semana $S_7$, calcule el vector $(f_1, 1 - f_1, f_2, 1 - f_2, f_3, 1 - f_3, f_4, 1 - f_4)$ , donde $f_i$ es la frecuencia de la modalidad i (1,2,3,4) observada en la semana $S_7$ sobre los 16 sujetos. (Sugerencia: use las funciones tabulate(), cbind(), t() y as.vector())
 
-En primer lugar, de cara al apartado b), creamos una función denominada __calcular_vector_frecuencias__ que recibe como parámetro la columna directamente con sus puntuaciones, además del número total de puntuaciones (en nuestro caso 4). Inicialmente, mediante la función _tabulate_ obtenemos el número de repeticiones de cada puntuación en la columna pasada como parámetro. A continuación, una vez obtenido el número de repeticiones calculamos la frecuencia de cada uno, dividiéndolo entre la longitud de la columna __puntuaciones__. Por último, mediante la función _rbind_ (equivalente a t(cbind())) unimos los vectores de frecuencias (f, 1 - f), concatenando cada pareja. 
+En primer lugar, de cara al apartado b), creamos una función denominada __calcular_vector_frecuencias__ que recibe como parámetro la columna directamente con sus puntuaciones, además del número total de puntuaciones (en nuestro caso 4). Inicialmente, mediante la función _tabulate_ obtenemos el número de repeticiones de cada puntuación en la columna pasada como parámetro. A continuación, una vez obtenido el número de repeticiones calculamos la frecuencia __relativa__ de cada uno, dividiéndolo entre la longitud de la columna __puntuaciones__. Por último, mediante la función _rbind_ (equivalente a t(cbind())) unimos los vectores de frecuencias (f, 1 - f), concatenando cada pareja. 
 
 Sin embargo, puede ocurrir que una puntuación no aparezca en la columna (por ejemplo, en las semanas 1 y 3 solo aparece la puntuación 1), por lo que por cada puntuación faltante añadimos las parejas (0,1), es decir, la frecuencia de aparición es 0 y por tanto, 1 - f = 1.
 
@@ -553,7 +579,7 @@ matriz.frecuencias
 
 Mediante la función _barplot_, mostramos el diagrama de barras además de incluir una leyenda en la parte derecha del gráfico (modificando el margen derecho para no solaparlo):
 
-```{r diagrama_barras, fig.width=6, fig.height=5}
+```{r diagrama_barras, fig.width=6, fig.height=5, fig.cap="Gráfico de barras con la evolución de la sensación de ardor con el tiempo (I)"}
 par(xpd = TRUE, mar = par()$mar + c(0,0,0,4))
 barplot(matriz.frecuencias, col = c("black", "white"), 
         main = "EVOLUCION SENSACION DE ARDOR CON EL TIEMPO")
@@ -562,11 +588,11 @@ legend(x= "topright",  legend = c("FREC. ARDOR", "FREC. SIN ARDOR"),
        cex = 0.6, text.font = 2, bg = 'white') 
 ```
 
-A través del gráfico anterior, podemos comprobar como, con el transcurso de las semanas, la sensación de ardor al emplear el hidrogel aumenta, concretamente a partir de la cuarta semana, donde aproximadamente un 19 y 13 % de los usuarios aumentaron su puntuación a 2 y 3, respectivamente.
+A través del gráfico anterior, podemos comprobar como, con el transcurso de las semanas, la sensación de ardor al emplear el hidrogel aumenta, concretamente a partir de la cuarta semana, donde aproximadamente una cuarta parte de los usuarios aumentaron su puntuación a 2 y 3.
 
 ### d) Cambie el gráfico anterior para que las barras que representan las frecuencias estén en rojo. Los números de las semanas deben estar en azul y en la parte superior del gráfico en lugar del fondo. Los números de modalidad deben estar a la izquierda, en azul. Agrega un título al gráfico.
 
-Para resolver este apartado, creamos una función denominada __mostrar_frecuencias__, que recibe como parámetros, además de la matriz, el ancho de la barra así como el espacio entre cada una:
+Para resolver este apartado creamos una función denominada __mostrar_frecuencias__, que recibe como parámetros, además de la matriz, el ancho de cada conjunto de barras apiladas, así como el espacio entre cada una:
 
 ```{r mostrar_frecuencias}
 mostrar_frecuencias <- function(matriz, ancho, espacio) {
@@ -600,18 +626,18 @@ mostrar_frecuencias <- function(matriz, ancho, espacio) {
 ```
 par(xpd = TRUE, mar = c(0,4,5,6))
 barplot(matriz.frecuencias, col = c("red", "white"), width = ancho, 
-          space = espacio, xaxt = "n", yaxt = "n",
-          ylab = "MODALIDAD", cex.lab = 1.25)
+        space = espacio, xaxt = "n", yaxt = "n",
+        ylab = "PUNTUACION", cex.lab = 1.25)
 ```
 
-2. __Los números de las semanas deben estar en azul y en la parte superior del gráfico en lugar del fondo__. Si nos fijamos en la función _barplot_ anterior, vemos que tanto el parámetro _xaxt_ como _yaxt_ están a "n", lo que significa que por el momento no se muestran los ejes. Esto es debido a que mediante la función _axis_ que ofrece el paquete _graphics_ es posible crear ejes de una forma mucho más personalizada. Por ello, para crear el eje X utilizamos dicha función, situándolo en la parte superior ( __side = 3__ ). Por otra parte, para denotar la posición en el eje X donde debe situarse cada número de semana, mediante la función _Reduce_ calculamos la distancia de separación entre campo y campo, en base al ancho de las barras y a la distancia de separación entre ellas pasadas como parámetro. Finalmente, coloreamos de azul el eje mediante el parámetro _col.axis_.
+2. __Los números de las semanas deben estar en azul y en la parte superior del gráfico en lugar del fondo__. Si nos fijamos en la función _barplot_ anterior, vemos que tanto el parámetro _xaxt_ como _yaxt_ están a "n", lo que significa que por el momento no se muestran los ejes. Esto es debido a que mediante la función _axis_ que ofrece el paquete _graphics_ es posible crear ejes de una forma mucho más personalizada. Por ello, para crear el eje X utilizamos dicha función, situándolo en la parte superior ( __side = 3__ ). Por otra parte, para denotar la posición en el eje X donde debe situarse cada número de semana, mediante la función _Reduce_ calculamos la distancia de separación entre cada conjunto de barras apiladas, en base al ancho y espacio establecidos por parámetro. Finalmente, coloreamos de azul el eje mediante el parámetro _col.axis_.
 
 ```
-pos_inicial <- espacio + ancho/2
+pos_inicial <- ancho / 2 + espacio
 longitud <- length(colnames(matriz)) - 1
-v <- Reduce(function(v, x) v + 2 * ancho/2 + espacio, x=numeric(longitud),  
+v <- Reduce(function(v, x) v + 2 * ancho / 2 + espacio, x=numeric(longitud),  
             init=pos_inicial, accumulate=TRUE)
-axis(side = 3, at = v, colnames(matriz), col.axis = "blue", tick = FALSE)
+axis(side = 3, at = v, colnames(matriz), col.axis = "blue", font = 2, tick = FALSE)
 ```
 
 3. __Los números de modalidad deben estar a la izquierda, en azul. Agrega un título al gráfico__. De forma similar al eje X, mediante la función _axis_ creamos el eje Y ( __side = 2__ ). Para denotar la posición donde debe situarse cada modalidad, nuevamente mediante una función _Reduce_ calculamos la distancia de separación entre cada valor (dado que en el eje Y no existe separación entre barras, sólo se tiene en cuenta el ancho). Finalmente, mediante la función _title_ añadimos un título al gráfico, situándolo en la parte superior ( __line = 3__ ), así como una leyenda en la parte superior derecha:
@@ -622,17 +648,18 @@ longitud_2 <- length(row.names(matriz)) / 2 - 1
 w <- Reduce(function(w, x) w + 2 * pos_inicial_2, x=numeric(longitud_2),
             init=pos_inicial_2, accumulate=TRUE)
 axis(side = 2, at = w, row.names(matriz)[seq(1,length(row.names(matriz)),2)], 
-     col.axis = "blue", cex = 125, tick = FALSE)
-title("FRECUENCIAS DE ARDOR DE HIDROGEL - SEMANAS 1 A LA 7", line = 3)
+     col.axis = "blue", cex = 125, font = 2, tick = FALSE)
+
+title("FRECUENCIAS DE ARDOR DE HIDROGEL - SEMANAS 1 A LA 7", line = 4, cex.main = 1.25)
 legend(x= "topright",  legend = c("FREC. ARDOR", "FREC. SIN ARDOR"), 
        inset = c(-0.2, 0), fill = c("red", "white"), 
-       cex = 0.6, text.font = 2, bg = 'white') 
+       cex = 0.6, text.font = 2, bg = 'white')
 ```
 
 Si nos fijamos en la función _axis_ podemos observar que, del conjunto de nombres de fila que previamente hemos asociado a la matriz:
 
 $$(1, 1 - f_1, 2, 1 - f_2, 3, 1 - f_3, 4, 1 - f_4)$$
-Sólo extraemos aquellos situados en las posiciones impares, esto es, __los números de modalidad__ :
+Sólo extraemos aquellos situados en las posiciones impares, esto es, __los números de modalidad__:
 
 ```
 row.names(matriz)[seq(1,length(row.names(matriz)),2)]
@@ -640,6 +667,6 @@ row.names(matriz)[seq(1,length(row.names(matriz)),2)]
 
 Una vez creada la función, realizamos la prueba final, empleando como ancho de barra 1 y espacio 0.2 entre barra y barra (eje X):
 
-```{r prueba_mostrar_frecuencias, fig.width=7, fig.height=6}
+```{r prueba_mostrar_frecuencias, fig.width=7, fig.height=6, fig.cap="Gráfico de barras con la evolución de sensación de ardor con el tiempo (II)"}
 mostrar_frecuencias(matriz.frecuencias, 1, 0.2)
 ```
