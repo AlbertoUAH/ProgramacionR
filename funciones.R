@@ -133,16 +133,16 @@ head(datos.agrupados.fecha)
 datos.agrupados.fecha[, "fecha"] <- as.Date(datos.agrupados.fecha[, "fecha"])
 sapply(datos.agrupados.fecha, class)
 
-imprimir_grafica <- function(datos, eje.x, eje.y, divisiones, color, segmentos = FALSE) {
+imprimir_grafica <- function(datos, eje.x, eje.y, saltos.eje.x, color, segmentos = FALSE) {
   par(mar=c(11,4,4,1), xaxt = "n")
   grafico.lineas <- plot(x = datos[, eje.x], y = datos[, eje.y], type = "l",
                          ylim = range(pretty(c(0, datos[, eje.y]))),
                          main = "EVOLUCION NUMERO DE CASOS COVID-19", 
                          xlab = "", ylab = "NUMERO DE CASOS", font.lab = 2, 
-                         col = color, las = 2, lwd = 2)
+                         col = color, las = 2)
   par(xaxt = "s")
   sec <- seq(datos[1, eje.x], datos[nrow(datos[eje.x]), eje.x], 
-             by = divisiones)
+             by = saltos.eje.x)
   
   axis.Date(1, at = sec, format = "%Y-%m-%d", las = 2)
   
@@ -150,11 +150,15 @@ imprimir_grafica <- function(datos, eje.x, eje.y, divisiones, color, segmentos =
     segments(sec, 0, sec, subset(datos, datos[, eje.x] %in% sec)[, eje.y],
              lty = 2)
     points(x = subset(datos, datos[, eje.x] %in% sec), pch = 20)
+    lines(smooth.spline(datos[, eje.x],
+                        datos[, eje.y]),
+          col = rgb(red = 0, green = 0, blue = 1, alpha = 0.7), 
+          lwd = 2)
   }
   mtext(text = "FECHA", side = 1, line = 6, font = 2)
 }
 # Prueba imprimir_grafica
-imprimir_grafica(datos.agrupados.fecha, "fecha", "num_casos", 15, "red", TRUE)
+imprimir_grafica(datos.agrupados.fecha, "fecha", "num_casos", 14, "red", TRUE)
 
 # apartado d)
 casos.por.columnas <- agrupar_datos(datos.filtrado, "fecha", c("num_casos", 
@@ -167,8 +171,8 @@ casos.por.columnas[, "fecha"] <- as.Date(casos.por.columnas[, "fecha"])
 # Mostramos las ultimas seis filas
 tail(casos.por.columnas)
 
-imprimir_multiples_lineas <- function(datos, eje.x, eje.y, paleta) {
-  imprimir_grafica(datos, eje.x, eje.y[1], 15, paleta[1])
+imprimir_multiples_lineas <- function(datos, eje.x, eje.y, paleta, saltos.eje.x) {
+  imprimir_grafica(datos, eje.x, eje.y[1], saltos.eje.x, paleta[1])
   
   mapply(FUN = function(x, y) { 
     lines(datos[, eje.x], datos[, x], col = y, lwd = 2)
@@ -178,12 +182,18 @@ imprimir_multiples_lineas <- function(datos, eje.x, eje.y, paleta) {
   legend(x= "top",  legend = eje.y, fill = paleta, cex = 0.7, text.font = 2, bg = 'white') 
 }
 
-# Prueba imprimir_multiples_lineas
+# Prueba imprimir_multiples_lineas con la Comunidad Autonoma Santander
 columnas <- c("num_casos", "num_casos_prueba_pcr", "num_casos_prueba_test_ac",
               "num_casos_prueba_otras", "num_casos_prueba_desconocida")
 paleta <- c("red", "blue", "orange", "darkgreen", "purple")
 
-imprimir_multiples_lineas(casos.por.columnas, "fecha", columnas, paleta)
+imprimir_multiples_lineas(casos.por.columnas, "fecha", columnas, paleta, 14)
+
+# Prueba imprimir_multiples_lineas en toda Espana
+casos.por.columnas <- agrupar_datos(datos.ccaa, "fecha", columnas)
+casos.por.columnas[, "fecha"] <- as.Date(casos.por.columnas[, "fecha"])
+
+imprimir_multiples_lineas(casos.por.columnas, "fecha", columnas, paleta, 14)
 
 # Pregunta 3
 # apartado a)
