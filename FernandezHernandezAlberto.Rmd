@@ -289,10 +289,10 @@ Sin embargo, nos encontramos con un inconveniente: __¿Qué ha ocurrido en los m
 
 Por el contrario, utilizar un gráfico de líneas puede resultar una mayor ventaja, permitiendo mostrar los cambios que sufre una variable __a lo largo del tiempo__, dado que lo que se desea representar es, al fin y al cabo, una serie temporal en el que se muestra una sucesión del número de casos por COVID-19, donde lo que se analiza es su tendencia (ascendente o descendente) entre días o semanas (no solo entre meses). Por el contrario, un gráfico de barras se emplea comunmente para comparar datos con un número limitado de categorías o grupos, sobretodo cuando la muestra no es muy grande.
 
-Por ello, tanto para el apartado c) como d) creamos una función, denominada __imprimir_grafica__, recibiendo como parámetros el conjunto de datos a mostrar, las columnas empleadas para los ejes X e Y, el número de divisiones a realizar en el eje X, así como el color del gráfico y un parámetro ( __segmentos__ ) que permite, en caso de estar a TRUE, crear un segmento por cada fecha en el eje, uniéndolo con su correspondiente valor en el gráfico:
+Por ello, tanto para el apartado c) como d) creamos una función, denominada __imprimir_grafica__, recibiendo como parámetros el conjunto de datos a mostrar, las columnas empleadas para los ejes X e Y, el número de saltos a realizar en el eje X, así como el color del gráfico y un parámetro ( __segmentos__ ) que permite, en caso de estar a TRUE, crear un segmento por cada fecha en el eje, uniéndolo con su correspondiente valor en el gráfico, además de mostrar una tendencia (suavizada) del número de casos:
 
 ```{r imprimir_grafica}
-imprimir_grafica <- function(datos, eje.x, eje.y, divisiones, color, segmentos = FALSE) {
+imprimir_grafica <- function(datos, eje.x, eje.y, saltos.eje.x, color, segmentos = FALSE) {
   par(mar=c(11,4,4,1), xaxt = "n")
   grafico.lineas <- plot(x = datos[, eje.x], y = datos[, eje.y], type = "l",
                          ylim = range(pretty(c(0, datos[, eje.y]))),
@@ -301,7 +301,7 @@ imprimir_grafica <- function(datos, eje.x, eje.y, divisiones, color, segmentos =
                          col = color, las = 2, lwd = 2)
   par(xaxt = "s")
   sec <- seq(datos[1, eje.x], datos[nrow(datos[eje.x]), eje.x], 
-             by = divisiones)
+             by = saltos.eje.x)
   
   axis.Date(1, at = sec, format = "%Y-%m-%d", las = 2)
   
@@ -309,6 +309,10 @@ imprimir_grafica <- function(datos, eje.x, eje.y, divisiones, color, segmentos =
     segments(sec, 0, sec, subset(datos, datos[, eje.x] %in% sec)[, eje.y],
              lty = 2)
     points(x = subset(datos, datos[, eje.x] %in% sec), pch = 20)
+    lines(smooth.spline(datos[, eje.x],
+                        datos[, eje.y]),
+          col = rgb(red = 0, green = 0, blue = 1, alpha = 0.7), 
+          lwd = 2)
   }
   mtext(text = "FECHA", side = 1, line = 6, font = 2)
 }
@@ -320,20 +324,22 @@ De la función anterior, quisiera destacar algunos detalles relevantes:
 
 2. Por otro lado, el parámetro _las_ se emplea para modificar la orientación de las etiquetas de los ejes (en horizontal), mientras que el campo _lwd_ modifica el grosor del gráfico.
 
-3. Tras borrar el eje X con la función _par_, mediante la función _axis.Date_ establecemos el eje de abcisas (concretamente en formato fecha), obteniendo una secuencia de fechas con tantas divisiones como el usuario haya especificado.
+3. Tras borrar el eje X con la función _par_, mediante la función _axis.Date_ establecemos el eje de abcisas (concretamente en formato fecha), obteniendo una secuencia de fechas en función del parámetro ( _saltos.eje.x_ ).
 
 4. Una vez creado el eje de abcisas y si el usuario lo desea, mediante la función _segments_ establecemos las rectas discontinuas para cada fecha en el eje X, empleando para ello la misma secuencia que con la función _axis.Date_. De este modo, el usuario podrá visualizar con mayor facilidad el número de casos en cada fecha.
 
 5. Mediante la función _points_ marcamos los números de casos anteriores.
 
-6. Por último, mediante la función _mtext_ establecemos el título del eje X.
+6. Mediante la función _smooth.pline_ del paquete _stats_ se crea un gráfico "suavizado" con respecto a los datos originales, con el objetivo de visualizar la tendencia del número de casos a lo largo del gráfico.
+
+7. Por último, mediante la función _mtext_ establecemos el título del eje X.
 
 Una vez definida la función, realizamos la prueba:
 
 \newpage
 ```{r prueba_imprimir_grafica, fig.width=9, fig.height=8, fig.cap="Gráfica con el número de casos en Cantabria"}
 # Prueba imprimir_grafica
-imprimir_grafica(datos.agrupados.fecha, "fecha", "num_casos", 15, "red", TRUE)
+imprimir_grafica(datos.agrupados.fecha, "fecha", "num_casos", 14, "red", TRUE)
 ```
 
 Analizando la evolución del número de casos, podemos observar el elevado pico de contagios producido durante los primeros meses de pandemia, en especial cuando las medidas en Europa (y en concreto España), no eran lo suficientemente estrictas. Tras la declaración del estado de alarma el día 14 de marzo, los efectos del confinamiento se tradujeron en un descenso lento en el número de casos diarios, aunque no constantes, sino que observamos numerosos "repuntes" en el número de casos durante los meses de marzo y abril (algo que no podíamos comprobar con un diagrama de barras). No obstante, con la apertura gradual de fronteras y negocios la curva de contagios comenzó a crecer desde comienzos de verano, aunque de forma menos "apuntalada" , alcanzando en el mes de septiembre valores cercanos a los meses de abril y marzo aunque, al igual que en la "primera ola", con contínuos repuntes en el número de casos.
@@ -356,13 +362,13 @@ casos.por.columnas[, "fecha"] <- as.Date(casos.por.columnas[, "fecha"])
 tail(casos.por.columnas)
 ```
 
-Una vez agrupado el DataFrame, debemos representar gráficamente cada columna con un color diferente. Para ello, creamos una función denominada __imprimir_multiples_lineas__, que recibe como parámetros tanto el DataFrame a representar gráficamente, los valores del eje X (campo fecha), del eje Y (columnas con el número de casos); además de un vector con la paleta de colores para cada línea.
+Una vez agrupado el DataFrame, debemos representar gráficamente cada columna con un color diferente. Para ello, creamos una función denominada __imprimir_multiples_lineas__, que recibe como parámetros tanto el DataFrame a representar gráficamente, los valores del eje X (campo fecha), del eje Y (columnas con el número de casos); además de un vector con la paleta de colores para cada línea y el número de saltos a realizar en el eje X.
 
 En primer lugar, la función recupera la primera de las columnas pasadas como parámetro (num_casos) y establece el mismo gráfico que el del apartado anterior, llamando a la función __imprimir_grafica__ (sin imprimir los segmentos como en el apartado anterior). A continuación, mediante la función _mapply_ por cada pareja (columna, color) se añade una nueva línea al gráfico ( _line_ ), asociando su correspondiente color. Finalmente, por medio de la función _legend_ se muestra la leyenda en el gráfico, situándose en la parte superior:
 
 ```{r imprimir_multiples_lineas}
-imprimir_multiples_lineas <- function(datos, eje.x, eje.y, paleta) {
-  imprimir_grafica(datos, eje.x, eje.y[1], 15, paleta[1])
+imprimir_multiples_lineas <- function(datos, eje.x, eje.y, paleta, saltos.eje.x) {
+  imprimir_grafica(datos, eje.x, eje.y[1], saltos.eje.x, paleta[1])
   
   mapply(FUN = function(x, y) { 
     lines(datos[, eje.x], datos[, x], col = y, lwd = 2)
@@ -381,7 +387,7 @@ columnas <- c("num_casos", "num_casos_prueba_pcr", "num_casos_prueba_test_ac",
               "num_casos_prueba_otras", "num_casos_prueba_desconocida")
 paleta <- c("red", "blue", "orange", "darkgreen", "purple")
 
-imprimir_multiples_lineas(casos.por.columnas, "fecha", columnas, paleta)
+imprimir_multiples_lineas(casos.por.columnas, "fecha", columnas, paleta, 14)
 ```
 
 Analizando la gráfica resultante podemos comprobar cómo desde el comienzo de la pandemia la mayoría de los casos por COVID-19 son diagnosticados por pruebas PCR. Por el contrario, otras pruebas como los Anti-cuerpos, "Otras" o "Desconocida" apenas se emplearon en la Comunidad Autónoma, salvo casos excepcionales.
@@ -393,7 +399,7 @@ Para demostrar que cada columna se está mostrando correctamente, realizamos una
 casos.por.columnas <- agrupar_datos(datos.ccaa, "fecha", columnas)
 casos.por.columnas[, "fecha"] <- as.Date(casos.por.columnas[, "fecha"])
 
-imprimir_multiples_lineas(casos.por.columnas, "fecha", columnas, paleta)
+imprimir_multiples_lineas(casos.por.columnas, "fecha", columnas, paleta, 14)
 ```
 
 ## Pregunta 3. Consideramos un fichero de datos en formato SAS de nombre "punt.sas7bdat" que contiene datos sobre alumnos matriculados en diversos cursos.
