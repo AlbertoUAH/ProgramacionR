@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 \newpage
 __NOTA__: salvo determinados apartados, la solución a cada uno de los ejercicios se ha llevado a cabo por medio de funciones definidas, integrando el código en una misma estructura.
 
-# Pregunta 1.
+# Pregunta 1
 __Un boleto del sorteo de la ONCE consta de dos partes, la primera es un número de 4 dígitos y la segunda es un número de tres dígitos que forman la serie del boleto.__
 
 Aquí consideramos sólo el número, por ejemplo, 0209. Se pide:
@@ -101,7 +101,7 @@ Esto último es posible comprobarlo mediante una pequeña tabla dinámica en Exc
 
 ![Salida tabla dinámica Excel](salida_excel.png)
 
-# Pregunta 2: 
+# Pregunta 2
 __En la carpeta covid_19 hay una serie de archivos sobre el COVID-19 en España. Se pide__:
 
 ## Apartado a) 
@@ -417,7 +417,7 @@ casos.por.columnas[, "fecha"] <- as.Date(casos.por.columnas[, "fecha"])
 imprimir_multiples_lineas(casos.por.columnas, "fecha", columnas, paleta, 14)
 ```
 
-# Pregunta 3. 
+# Pregunta 3
 __Consideramos un fichero de datos en formato SAS de nombre "punt.sas7bdat" que contiene datos sobre alumnos matriculados en diversos cursos.__
 
 ## Apartado a)
@@ -553,7 +553,7 @@ write.table(level500, file = "level500.dat", row.names = FALSE)
 ```
 ![Contenido de level500.dat](level_500.png)
 
-# Pregunta 4. 
+# Pregunta 4
 __La siguiente tabla representa puntuaciones de sensación de ardor para 16 sujetos en un estudio para probar un nuevo hidrogel. La primera columna da el número del sujeto. Las siguientes columnas dan la puntuación de sensación de ardor (en una escala de 1 a 4) para semanas 1 (S1) a 7 (S7). (La matriz de datos se encuentra en "matriz.R")__
 
 Inicialmente, cargamos la matriz en una variable, denominada _puntuaciones.hidrogel_ :
@@ -581,8 +581,8 @@ Sin embargo, puede ocurrir que una puntuación no aparezca en la columna (por ej
 ```{r calcular_vector_frecuencias}
 calcular_vector_frecuencias <- function(puntuaciones, categorias) {
   frecuencias <- tabulate(puntuaciones) / length(puntuaciones)
-  categorias.faltantes <- categorias - length(frecuencias)
-  c(as.vector(rbind(frecuencias, 1 - frecuencias)), rep(c(0,1), categorias.faltantes))
+  c(as.vector(rbind(frecuencias, 1 - frecuencias)), rep(c(0,1), 
+              categorias - length(frecuencias)))
 }
 ```
 

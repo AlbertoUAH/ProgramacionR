@@ -270,8 +270,8 @@ puntuaciones.hidrogel
 # apartado a)
 calcular_vector_frecuencias <- function(puntuaciones, categorias) {
   frecuencias <- tabulate(puntuaciones) / length(puntuaciones)
-  categorias.faltantes <- categorias - length(frecuencias)
-  c(as.vector(rbind(frecuencias, 1 - frecuencias)), rep(c(0,1), categorias.faltantes))
+  c(as.vector(rbind(frecuencias, 1 - frecuencias)), rep(c(0,1), 
+              categorias - length(frecuencias)))
 }
 # Prueba con la semana 7 (columna 7 + 1)
 calcular_vector_frecuencias(puntuaciones.hidrogel[ ,8], 4)
