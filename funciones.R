@@ -8,6 +8,7 @@ generar_boletos <- function(num.digitos) {
 }
 # Prueba
 df.combinaciones.sorteo <- generar_boletos(4)
+
 head(df.combinaciones.sorteo, 5)
 tail(df.combinaciones.sorteo, 5)
 
@@ -19,7 +20,7 @@ vector.combinaciones <- apply(df.combinaciones.sorteo, 1, paste, collapse = "")
 # Mostramos las primeras 50 combinaciones
 head(vector.combinaciones, 50)
 
-# apartado b)
+# Apartado 2
 suma.combinaciones <- apply(df.combinaciones.sorteo, 1, sum)
 # Ejemplo de salida
 suma.combinaciones[1:20]
@@ -31,7 +32,7 @@ moda <- function(vector.suma) {
 cat("La suma de los numeros que mas se repite es ", moda(suma.combinaciones))
 
 # Pregunta 2
-# apartado a)
+# Apartado 1
 # Comunidades Autonomas
 cod.ccaa <- read.table("CodCCAA.csv", sep = "\t", header = TRUE)
 head(cod.ccaa)
@@ -91,8 +92,10 @@ lapply(unique(datos.ccaa[, "Comunidad.Autonoma"]), function(x) {
   }
   vector.provincias
 })
+# Almacenamos los datos de provincias con el codigo de la CC.AA
+# write.csv(datos.ccaa[c("Comunidad.Autonoma", colnames(datos.provincias))],"datos_provincias.csv", row.names = FALSE)
 
-# apartado b)
+# Apartado 2
 # De forma previa, eliminamos las columnas Nombre.de.la.subdivision.en.la.ISO1 y Nombre.Comunidad
 # correspondientes con las columnas 9 y 10
 datos.ccaa <- datos.ccaa[, -c(9, 10)]
@@ -103,11 +106,11 @@ seleccionar_datos_comunidad <- function(datos.ccaa, dni) {
 # Prueba con Castilla y Leon (DNI = 12345678 mod 17 -> 6)
 head(seleccionar_datos_comunidad(datos.ccaa, 12345678), 5)
 
-# Prueba con Cantabria (DNI = 54003003 mod 17 -> 4)
+# Para este apartado nos corresponde Cantabria (DNI = 54003003 mod 17 -> 4)
 datos.filtrado <- seleccionar_datos_comunidad(datos.ccaa, 54003003)
 head(datos.filtrado, 5)
 
-# apartado c)
+# Apartado 3
 # Inicialmente, agrupamos por fecha
 agrupar_datos <- function(datos.ccaa, clave, columnas) {
   agrupacion <- by(datos.ccaa, list(datos.ccaa[, clave]), function(fila) {
@@ -127,7 +130,7 @@ agrupar_datos <- function(datos.ccaa, clave, columnas) {
 # Prueba agrupar_datos
 datos.agrupados.fecha <- agrupar_datos(datos.filtrado, "fecha", "num_casos")
 # Echamos un primer vistazo a los datos obtenidos
-head(datos.agrupados.fecha)
+tail(datos.agrupados.fecha)
 
 # Lo convertimos a tipo de dato Date (en lugar de factor)
 datos.agrupados.fecha[, "fecha"] <- as.Date(datos.agrupados.fecha[, "fecha"])
@@ -160,7 +163,7 @@ imprimir_grafica <- function(datos, eje.x, eje.y, saltos.eje.x, color, segmentos
 # Prueba imprimir_grafica
 imprimir_grafica(datos.agrupados.fecha, "fecha", "num_casos", 14, "red", TRUE)
 
-# apartado d)
+# Apartado 4
 casos.por.columnas <- agrupar_datos(datos.filtrado, "fecha", c("num_casos", 
                                                                "num_casos_prueba_pcr", 
                                                                "num_casos_prueba_test_ac", "num_casos_prueba_otras", 
@@ -196,7 +199,7 @@ casos.por.columnas[, "fecha"] <- as.Date(casos.por.columnas[, "fecha"])
 imprimir_multiples_lineas(casos.por.columnas, "fecha", columnas, paleta, 14)
 
 # Pregunta 3
-# apartado a)
+# Apartado 1
 # Para importar un fichero sas7bdat, necesitamos instalarnos el paquete sas7bdat
 install.packages("sas7bdat", repos = "http://cran.us.r-project.org")
 
@@ -213,7 +216,7 @@ head(punt)
 # ... Y a las columnas ...
 sapply(punt, class)
 
-# apartado b)
+# Apartado 2
 calcular_total_puntuacion <- function(puntuaciones, id.alumno, columnas.test) {
   cbind(puntuaciones[c(id.alumno, columnas.test)], 
         OVERALL = apply(puntuaciones[columnas.test], 1, function(x) {
@@ -223,7 +226,7 @@ calcular_total_puntuacion <- function(puntuaciones, id.alumno, columnas.test) {
 overall <- calcular_total_puntuacion(punt, "SEGSOC", c("TEST1", "TEST2", "TEST3", "TEST4"))
 overall
 
-# apartado c)
+# Apartado 3
 anadir_columna_fecha <- function(puntuaciones, dia.mes, columnas) {
   cbind(puntuaciones[columnas], START = apply(puntuaciones[dia.mes], 1, function(x) {
     paste0(format(Sys.Date(), "%Y"), "-", x)
@@ -232,7 +235,7 @@ anadir_columna_fecha <- function(puntuaciones, dia.mes, columnas) {
 start <- anadir_columna_fecha(punt, "ENROLLED", c("SEGSOC", "COURSE"))
 start
 
-# apartado d)
+# Apartado 4
 crear_nuevo_df <- function(puntuaciones, codigo, columna) {
   punt.filtrado <- puntuaciones[grep(paste0(codigo,"$"), puntuaciones[, columna]), ]
   regex <- "([A-Za-z]+)([0-9]+)"
@@ -254,7 +257,7 @@ level500
 # Comprobamos el tipo de dato de las nuevas columnas
 sapply(level500, class)
 
-# apartado e)
+# Apartado 5
 write.table(level500, file = "level500.dat", row.names = FALSE)
 
 # Pregunta 4
@@ -267,7 +270,7 @@ puntuaciones.hidrogel <- structure(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 
                                      1, 1, 4, 1, 1, 4, 4, 1, 1), .Dim = c(16L, 8L))
 puntuaciones.hidrogel
 
-# apartado a)
+# Apartado 1
 calcular_vector_frecuencias <- function(puntuaciones, categorias) {
   frecuencias <- tabulate(puntuaciones) / length(puntuaciones)
   c(as.vector(rbind(frecuencias, 1 - frecuencias)), rep(c(0,1), 
@@ -276,7 +279,7 @@ calcular_vector_frecuencias <- function(puntuaciones, categorias) {
 # Prueba con la semana 7 (columna 7 + 1)
 calcular_vector_frecuencias(puntuaciones.hidrogel[ ,8], 4)
 
-# apartado b)
+# Apartado 2
 matriz.frecuencias <- matrix(unlist(apply(
   puntuaciones.hidrogel[, -1], 2, calcular_vector_frecuencias, categorias = 4)),
   nrow = 8)
@@ -289,7 +292,7 @@ class(matriz.frecuencias)
 # Mostramos su contenido
 matriz.frecuencias
 
-# apartado c)
+# Apartado 3
 par(xpd = TRUE, mar = par()$mar + c(0,0,0,4))
 barplot(matriz.frecuencias, col = c("black", "white"), 
         main = "EVOLUCION SENSACION DE ARDOR CON EL TIEMPO")
@@ -297,7 +300,7 @@ legend(x= "topright",  legend = c("FREC. ARDOR", "FREC. SIN ARDOR"),
        inset = c(-0.3, 0), fill = c("black", "white"), 
        cex = 0.6, text.font = 2, bg = 'white')
 
-# apartado d)
+# Apartado 4
 mostrar_frecuencias <- function(matriz, ancho, espacio) {
   par(xpd = TRUE, mar = c(0,4,5,6))
   barplot(matriz.frecuencias, col = c("red", "white"), width = ancho, 
@@ -322,4 +325,5 @@ mostrar_frecuencias <- function(matriz, ancho, espacio) {
          inset = c(-0.2, 0), fill = c("red", "white"), 
          cex = 0.6, text.font = 2, bg = 'white') 
 }
+# Prueba mostrar_frecuencias
 mostrar_frecuencias(matriz.frecuencias, 1, 0.2)
