@@ -36,8 +36,7 @@ Considerando lo anterior, creamos una función denominada __generar_boletos__, c
 
 ```{r funcion generar_boletos}
 generar_boletos <- function(num.digitos) {
-  numeros <- seq(0,9)
-  lista.combinaciones <- rep(list(numeros), num.digitos)
+  lista.combinaciones <- rep(list(seq(0,9)), num.digitos)
   expand.grid(lista.combinaciones)
 }
 # Prueba
@@ -308,11 +307,11 @@ Por ello, tanto para el apartado 3 como 4 creamos una función, denominada __imp
 ```{r imprimir_grafica}
 imprimir_grafica <- function(datos, eje.x, eje.y, saltos.eje.x, color, segmentos = FALSE) {
   par(mar=c(11,4,4,1), xaxt = "n")
-  grafico.lineas <- plot(x = datos[, eje.x], y = datos[, eje.y], type = "l",
-                         ylim = range(pretty(c(0, datos[, eje.y]))),
-                         main = "EVOLUCION NUMERO DE CASOS COVID-19", 
-                         xlab = "", ylab = "NUMERO DE CASOS", font.lab = 2, 
-                         col = color, las = 2)
+  plot(x = datos[, eje.x], y = datos[, eje.y], type = "l",
+       ylim = range(pretty(c(0, datos[, eje.y]))),
+       main = "EVOLUCION NUMERO DE CASOS COVID-19", 
+       xlab = "", ylab = "NUMERO DE CASOS", font.lab = 2, 
+       col = color, las = 2)
   par(xaxt = "s")
   sec <- seq(datos[1, eje.x], datos[nrow(datos[eje.x]), eje.x], 
              by = saltos.eje.x)
@@ -505,14 +504,14 @@ start
 ## Apartado 4
 __Formar un nuevo data frame de nombre level500 que contenga los estudiantes cuyo curso acaba en 500. Crear dos nuevas variables carácter, una de nombre subject con el código de curso (parte literal) y otra de nombre level con el número del curso (parte numérica).__
 
-Para este apartado, la función diseñada (denominada __crear_nuevo_df__) contiene como parámetros el DataFrame con las puntuaciones de cada alumno, el número de curso a filrar, así como la columna donde aplicar el filtro (COURSE).
+Para este apartado, la función diseñada (denominada __dividir_columna__) contiene como parámetros el DataFrame con las puntuaciones de cada alumno, el número de curso a filrar, así como la columna donde aplicar el filtro (COURSE).
 
 Inicialmente, debemos recuperar aquellas filas del DataFrame cuyo valor en la columna COURSE acabe en "500". Para ello, mediante la función _grep_ aplicamos una __expresión regular__ a todas las filas del DataFrame, filtrando aquellas que acaben en 500 (para indicarlo mediante una expresión regular, bastaría con concatenar el valor pasado como parámetro junto con el símbolo "$"). Una vez filtradas las filas, mediante la función _transform_ añadimos las dos nuevas columnas. Para ello, mediante la función _gsub_ aplicamos la expresión regular "([A-Za-z]+)([0-9]+)" a la columna COURSE, lo que permite extraer por un lado (SUBJECT) el código de curso, expresión formada por las letras del alfabeto ([A-Za-z]+); así como la columna LEVEL, que contiene la parte numérica del curso ([0-9]+).
 
 Por último, para convertir ambas variables en tipo carácter (en lugar de factor o numérico), a cada nueva columna le aplicamos la función _as.character_ (mediante _lapply_), reestableciendo los números de fila:
 
-```{r crear_nuevo_df}
-crear_nuevo_df <- function(puntuaciones, codigo, columna) {
+```{r dividir_columna}
+dividir_columna <- function(puntuaciones, codigo, columna) {
   punt.filtrado <- puntuaciones[grep(paste0(codigo,"$"), puntuaciones[, columna]), ]
   regex <- "([A-Za-z]+)([0-9]+)"
   punt.filtrado <- transform(punt.filtrado, 
@@ -530,13 +529,13 @@ crear_nuevo_df <- function(puntuaciones, codigo, columna) {
 
 Una vez definida la función, creamos el nuevo DataFrame ( _level500_ ), filtrando aquellos estudiantes cuyo curso acaba en 500, además de las dos nuevas variables (SUBJECT, LEVEL):
 
-```{r prueba_crear_nuevo_df}
-# Prueba crear_nuevo_df
-level500 <- crear_nuevo_df(punt, "500", "COURSE")
+```{r prueba_dividir_columna}
+# Prueba dividir_columna
+level500 <- dividir_columna(punt, "500", "COURSE")
 level500
 ```
 
-```{r prueba_crear_nuevo_df_tipo_datos}
+```{r prueba_dividir_columna_tipo_datos}
 # Comprobamos el tipo de dato de las nuevas columnas
 sapply(level500, class)
 ```
@@ -645,16 +644,16 @@ mostrar_frecuencias <- function(matriz, ancho, espacio, titulo) {
           space = espacio, xaxt = "n", yaxt = "n",
           ylab = "PUNTUACION", cex.lab = 1.25)
   
-  pos_inicial <- ancho / 2 + espacio
-  longitud <- length(colnames(matriz)) - 1
-  v <- Reduce(function(v, x) v + 2 * ancho / 2 + espacio, x=numeric(longitud),  
-              init=pos_inicial, accumulate=TRUE)
+  v <- Reduce(function(v, x) v + 2 * ancho / 2 + espacio, 
+              x=numeric(length(colnames(matriz)) - 1),  
+              init=ancho / 2 + espacio, 
+              accumulate=TRUE)
   axis(side = 3, at = v, colnames(matriz), col.axis = "blue", font = 2, tick = FALSE)
   
-  pos_inicial_2 <- ancho / 2
-  longitud_2 <- length(row.names(matriz)) / 2 - 1
-  w <- Reduce(function(w, x) w + 2 * pos_inicial_2, x=numeric(longitud_2),
-              init=pos_inicial_2, accumulate=TRUE)
+  w <- Reduce(function(w, x) w + 2 * ancho / 2, 
+              x=numeric(length(row.names(matriz)) / 2 - 1),
+              init=ancho / 2, 
+              accumulate=TRUE)
   axis(side = 2, at = w, row.names(matriz)[seq(1,length(row.names(matriz)),2)], 
        col.axis = "blue", cex = 125, font = 2, tick = FALSE)
   
@@ -677,20 +676,20 @@ barplot(matriz.frecuencias, col = c("red", "white"), width = ancho,
 2. __Los números de las semanas deben estar en azul y en la parte superior del gráfico en lugar del fondo__. Si nos fijamos en la función _barplot_ anterior, vemos que tanto el parámetro _xaxt_ como _yaxt_ están a "n", lo que significa que por el momento no se muestran los ejes. Esto es debido a que mediante la función _axis_ que ofrece el paquete _graphics_ es posible crear ejes de una forma mucho más personalizada. Por ello, para crear el eje X utilizamos dicha función, situándolo en la parte superior ( __side = 3__ ). Por otra parte, para denotar la posición en el eje X donde debe situarse cada número de semana, mediante la función _Reduce_ calculamos la distancia de separación entre cada conjunto de barras apiladas, en base al ancho y espacio establecidos por parámetro. Finalmente, coloreamos de azul el eje mediante el parámetro _col.axis_.
 
 ```
-pos_inicial <- ancho / 2 + espacio
-longitud <- length(colnames(matriz)) - 1
-v <- Reduce(function(v, x) v + 2 * ancho / 2 + espacio, x=numeric(longitud),  
-            init=pos_inicial, accumulate=TRUE)
+v <- Reduce(function(v, x) v + 2 * ancho / 2 + espacio, 
+              x=numeric(length(colnames(matriz)) - 1),  
+              init=ancho / 2 + espacio, 
+              accumulate=TRUE)
 axis(side = 3, at = v, colnames(matriz), col.axis = "blue", font = 2, tick = FALSE)
 ```
 
 3. __Los números de modalidad deben estar a la izquierda, en azul. Agrega un título al gráfico__. De forma similar al eje X, mediante la función _axis_ creamos el eje Y ( __side = 2__ ). Para denotar la posición donde debe situarse cada modalidad, nuevamente mediante una función _Reduce_ calculamos la distancia de separación entre cada valor (dado que en el eje Y no existe separación entre barras, sólo se tiene en cuenta el ancho). Finalmente, mediante la función _title_ añadimos el título al gráfico, situándolo en la parte superior ( __line = 3__ ), así como una leyenda en la parte superior derecha:
 
 ```
-pos_inicial_2 <- ancho / 2
-longitud_2 <- length(row.names(matriz)) / 2 - 1
-w <- Reduce(function(w, x) w + 2 * pos_inicial_2, x=numeric(longitud_2),
-            init=pos_inicial_2, accumulate=TRUE)
+w <- Reduce(function(w, x) w + 2 * ancho / 2, 
+              x=numeric(length(row.names(matriz)) / 2 - 1),
+              init=ancho / 2, 
+              accumulate=TRUE)
 axis(side = 2, at = w, row.names(matriz)[seq(1,length(row.names(matriz)),2)], 
      col.axis = "blue", cex = 125, font = 2, tick = FALSE)
 

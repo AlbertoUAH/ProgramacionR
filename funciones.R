@@ -2,8 +2,7 @@
 # Author: Alberto Fernandez Hernandez
 # Pregunta 1
 generar_boletos <- function(num.digitos) {
-  numeros <- seq(0,9)
-  lista.combinaciones <- rep(list(numeros), num.digitos)
+  lista.combinaciones <- rep(list(seq(0,9)), num.digitos)
   expand.grid(lista.combinaciones)
 }
 # Prueba
@@ -138,11 +137,11 @@ sapply(datos.agrupados.fecha, class)
 
 imprimir_grafica <- function(datos, eje.x, eje.y, saltos.eje.x, color, segmentos = FALSE) {
   par(mar=c(11,4,4,1), xaxt = "n")
-  grafico.lineas <- plot(x = datos[, eje.x], y = datos[, eje.y], type = "l",
-                         ylim = range(pretty(c(0, datos[, eje.y]))),
-                         main = "EVOLUCION NUMERO DE CASOS COVID-19", 
-                         xlab = "", ylab = "NUMERO DE CASOS", font.lab = 2, 
-                         col = color, las = 2)
+  plot(x = datos[, eje.x], y = datos[, eje.y], type = "l",
+       ylim = range(pretty(c(0, datos[, eje.y]))),
+       main = "EVOLUCION NUMERO DE CASOS COVID-19", 
+       xlab = "", ylab = "NUMERO DE CASOS", font.lab = 2, 
+       col = color, las = 2)
   par(xaxt = "s")
   sec <- seq(datos[1, eje.x], datos[nrow(datos[eje.x]), eje.x], 
              by = saltos.eje.x)
@@ -236,7 +235,7 @@ start <- anadir_columna_fecha(punt, "ENROLLED", c("SEGSOC", "COURSE"))
 start
 
 # Apartado 4
-crear_nuevo_df <- function(puntuaciones, codigo, columna) {
+dividir_columna <- function(puntuaciones, codigo, columna) {
   punt.filtrado <- puntuaciones[grep(paste0(codigo,"$"), puntuaciones[, columna]), ]
   regex <- "([A-Za-z]+)([0-9]+)"
   punt.filtrado <- transform(punt.filtrado, 
@@ -251,7 +250,7 @@ crear_nuevo_df <- function(puntuaciones, codigo, columna) {
   punt.filtrado
 }
 
-level500 <- crear_nuevo_df(punt, "500", "COURSE")
+level500 <- dividir_columna(punt, "500", "COURSE")
 level500
 
 # Comprobamos el tipo de dato de las nuevas columnas
@@ -307,16 +306,16 @@ mostrar_frecuencias <- function(matriz, ancho, espacio, titulo) {
           space = espacio, xaxt = "n", yaxt = "n",
           ylab = "PUNTUACION", cex.lab = 1.25)
   
-  pos_inicial <- ancho / 2 + espacio
-  longitud <- length(colnames(matriz)) - 1
-  v <- Reduce(function(v, x) v + 2 * ancho / 2 + espacio, x=numeric(longitud),  
-              init=pos_inicial, accumulate=TRUE)
+  v <- Reduce(function(v, x) v + 2 * ancho / 2 + espacio, 
+              x=numeric(length(colnames(matriz)) - 1),  
+              init=ancho / 2 + espacio, 
+              accumulate=TRUE)
   axis(side = 3, at = v, colnames(matriz), col.axis = "blue", font = 2, tick = FALSE)
   
-  pos_inicial_2 <- ancho / 2
-  longitud_2 <- length(row.names(matriz)) / 2 - 1
-  w <- Reduce(function(w, x) w + 2 * pos_inicial_2, x=numeric(longitud_2),
-              init=pos_inicial_2, accumulate=TRUE)
+  w <- Reduce(function(w, x) w + 2 * ancho / 2, 
+              x=numeric(length(row.names(matriz)) / 2 - 1),
+              init=ancho / 2, 
+              accumulate=TRUE)
   axis(side = 2, at = w, row.names(matriz)[seq(1,length(row.names(matriz)),2)], 
        col.axis = "blue", cex = 125, font = 2, tick = FALSE)
   
