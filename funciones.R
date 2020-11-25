@@ -302,7 +302,7 @@ legend(x= "topright",  legend = c("FREC. ARDOR", "FREC. SIN ARDOR"),
 # Apartado 4
 mostrar_frecuencias <- function(matriz, ancho, espacio, titulo) {
   par(xpd = TRUE, mar = c(0,4,5,6))
-  barplot(matriz.frecuencias, col = c("red", "white"), width = ancho, 
+  barplot(matriz, col = c("red", "white"), width = ancho, 
           space = espacio, xaxt = "n", yaxt = "n",
           ylab = "PUNTUACION", cex.lab = 1.25)
   

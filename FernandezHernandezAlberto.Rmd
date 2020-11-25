@@ -640,7 +640,7 @@ Para resolver este apartado creamos una función denominada __mostrar_frecuencia
 ```{r mostrar_frecuencias}
 mostrar_frecuencias <- function(matriz, ancho, espacio, titulo) {
   par(xpd = TRUE, mar = c(0,4,5,6))
-  barplot(matriz.frecuencias, col = c("red", "white"), width = ancho, 
+  barplot(matriz, col = c("red", "white"), width = ancho, 
           space = espacio, xaxt = "n", yaxt = "n",
           ylab = "PUNTUACION", cex.lab = 1.25)
   
@@ -668,7 +668,7 @@ mostrar_frecuencias <- function(matriz, ancho, espacio, titulo) {
 
 ```
 par(xpd = TRUE, mar = c(0,4,5,6))
-barplot(matriz.frecuencias, col = c("red", "white"), width = ancho, 
+barplot(matriz, col = c("red", "white"), width = ancho, 
         space = espacio, xaxt = "n", yaxt = "n",
         ylab = "PUNTUACION", cex.lab = 1.25)
 ```
