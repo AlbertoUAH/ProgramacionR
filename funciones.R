@@ -111,8 +111,8 @@ head(datos.filtrado, 5)
 
 # Apartado 3
 # Inicialmente, agrupamos por fecha
-agrupar_datos <- function(datos.ccaa, clave, columnas) {
-  agrupacion <- by(datos.ccaa, list(datos.ccaa[, clave]), function(fila) {
+agrupar_datos <- function(datos, clave, columnas) {
+  agrupacion <- by(datos, list(datos[, clave]), function(fila) {
     data.frame(
       total = unique(fila[, clave]),
       do.call(cbind,
@@ -141,7 +141,7 @@ imprimir_grafica <- function(datos, eje.x, eje.y, saltos.eje.x, color, segmentos
        ylim = range(pretty(c(0, datos[, eje.y]))),
        main = "EVOLUCION NUMERO DE CASOS COVID-19", 
        xlab = "", ylab = "NUMERO DE CASOS", font.lab = 2, 
-       col = color, las = 2)
+       col = color, las = 2, lwd = 1.5)
   par(xaxt = "s")
   sec <- seq(datos[1, eje.x], datos[nrow(datos[eje.x]), eje.x], 
              by = saltos.eje.x)
@@ -154,7 +154,7 @@ imprimir_grafica <- function(datos, eje.x, eje.y, saltos.eje.x, color, segmentos
     points(x = subset(datos, datos[, eje.x] %in% sec), pch = 20)
     lines(smooth.spline(datos[, eje.x],
                         datos[, eje.y]),
-          col = rgb(red = 0, green = 0, blue = 1, alpha = 0.7), 
+          col = rgb(red = 0, green = 0, blue = 0.8, alpha = 0.8), 
           lwd = 2)
   }
   mtext(text = "FECHA", side = 1, line = 6, font = 2)
@@ -176,9 +176,10 @@ tail(casos.por.columnas)
 imprimir_multiples_lineas <- function(datos, eje.x, eje.y, paleta, saltos.eje.x) {
   imprimir_grafica(datos, eje.x, eje.y[1], saltos.eje.x, paleta[1])
   
-  mapply(FUN = function(x, y) { 
-    lines(datos[, eje.x], datos[, x], col = y, lwd = 2)
-  }, eje.y, paleta)
+  # equivalente a apply(lines())
+  matlines(datos[, eje.x], datos[, eje.y[2:length(eje.y)]],
+          col = paleta[2:length(paleta)],
+          type = 'l', lty = 1, lwd = 1.5)
   
   eje.y <- lapply(gsub('_', ' ', eje.y), toupper)
   legend(x= "top",  legend = eje.y, fill = paleta, cex = 0.7, text.font = 2, bg = 'white') 
@@ -279,6 +280,7 @@ calcular_vector_frecuencias <- function(puntuaciones, categorias) {
 calcular_vector_frecuencias(puntuaciones.hidrogel[ ,8], 4)
 
 # Apartado 2
+# Puntuaciones.hidrogel[, -1]. NO contamos la primera columna
 matriz.frecuencias <- matrix(unlist(apply(
   puntuaciones.hidrogel[, -1], 2, calcular_vector_frecuencias, categorias = 4)),
   nrow = 8)
@@ -306,13 +308,13 @@ mostrar_frecuencias <- function(matriz, ancho, espacio, titulo) {
           space = espacio, xaxt = "n", yaxt = "n",
           ylab = "PUNTUACION", cex.lab = 1.25)
   
-  v <- Reduce(function(v, x) v + 2 * ancho / 2 + espacio, 
+  v <- Reduce(function(v, x) v + ancho + espacio, 
               x=numeric(length(colnames(matriz)) - 1),  
               init=ancho / 2 + espacio, 
               accumulate=TRUE)
   axis(side = 3, at = v, colnames(matriz), col.axis = "blue", font = 2, tick = FALSE)
   
-  w <- Reduce(function(w, x) w + 2 * ancho / 2, 
+  w <- Reduce(function(w, x) w + ancho, 
               x=numeric(length(row.names(matriz)) / 2 - 1),
               init=ancho / 2, 
               accumulate=TRUE)

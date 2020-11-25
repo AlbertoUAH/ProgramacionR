@@ -1,6 +1,6 @@
 ---
 title: "Práctica Programación R"
-author: "Fernández Hernádez Alberto"
+author: "Fernández Hernández, Alberto"
 date: "26/11/2020"
 output:
   pdf_document:
@@ -130,7 +130,7 @@ head(datos.provincias)
 dim(datos.provincias)
 ```
 
-Una vez leídos los ficheros, debemos añadir el código de comunidad autónoma, situado en _CodCCAA.csv_, al fichero _datos_provincias.csv_, sin tener que hacerlo manualmente. De forma previa, dado que los ficheros _CodCCAA.csv_ y _CodProv.txt_ contienen columnas con tildes, las renombramos:
+Una vez leídos los ficheros, debemos añadir el código de comunidad autónoma, situado en _CodCCAA.csv_, al fichero _datos_provincias.csv_, sin tener que hacerlo manualmente. De forma previa, dado que los ficheros _CodCCAA.csv_ y _CodProv.txt_ contienen columnas con tildes (además de que ambas tienen una misma columna denominada _Código_), las renombramos:
 
 ``` {r renombrar columnas}
 colnames(cod.ccaa) <- c("Cod.Comunidad", "Nombre.Comunidad", "Num")
@@ -238,8 +238,8 @@ Para este apartado (y de forma previa a su implementación gráfica), la mejor f
 Para ello, mediante la función _by_ agrupamos cada fila por el campo __clave__ (pasado como parámetro), obteniendo sus valores únicos. En el resto de columnas indicadas por parámetro, mediante la función _lapply_ realizaremos el sumatorio por cada una de ellas, concatenando los resultados a través de la función _cbind_, la cual es invocada gracias a la función _do.call_. Una vez obtenida la fila, eliminamos su nombre ( _rownames_ ) ya que por defecto es la primera columna; además de agrupar cada una de ellas en un mismo DataFrame, aplicando la función _rbind_, incluyendo finalmente los nombres de columnas:
 
 ```{r agrupar_datos}
-agrupar_datos <- function(datos.ccaa, clave, columnas) {
-  agrupacion <- by(datos.ccaa, list(datos.ccaa[, clave]), function(fila) {
+agrupar_datos <- function(datos, clave, columnas) {
+  agrupacion <- by(datos, list(datos[, clave]), function(fila) {
       data.frame(
           total = unique(fila[, clave]),
           do.call(cbind,
@@ -311,7 +311,7 @@ imprimir_grafica <- function(datos, eje.x, eje.y, saltos.eje.x, color, segmentos
        ylim = range(pretty(c(0, datos[, eje.y]))),
        main = "EVOLUCION NUMERO DE CASOS COVID-19", 
        xlab = "", ylab = "NUMERO DE CASOS", font.lab = 2, 
-       col = color, las = 2)
+       col = color, las = 2, lwd = 1.5)
   par(xaxt = "s")
   sec <- seq(datos[1, eje.x], datos[nrow(datos[eje.x]), eje.x], 
              by = saltos.eje.x)
@@ -324,7 +324,7 @@ imprimir_grafica <- function(datos, eje.x, eje.y, saltos.eje.x, color, segmentos
     points(x = subset(datos, datos[, eje.x] %in% sec), pch = 20)
     lines(smooth.spline(datos[, eje.x],
                         datos[, eje.y]),
-          col = rgb(red = 0, green = 0, blue = 1, alpha = 0.7), 
+          col = rgb(red = 0, green = 0, blue = 0.8, alpha = 0.8), 
           lwd = 2)
   }
   mtext(text = "FECHA", side = 1, line = 6, font = 2)
@@ -335,7 +335,7 @@ De la función anterior, quisiera destacar algunos detalles relevantes:
 
 1. Para poder apreciar en mayor medida el gráfico resultante, mediante la función _par_ establecemos unos mayores márgenes de representación, además de eliminar temporalmente el eje X. Esto último lo hacemos para que el usuario, por parámetro, pueda elegir el número de divisiones (el número de fechas a mostrar en el eje X) de forma dinámica.
 
-2. Por otro lado, el parámetro _las_ se emplea para modificar la orientación de las etiquetas de los ejes (en horizontal).
+2. Por otro lado, el parámetro _las_ se emplea para modificar la orientación de las etiquetas de los ejes (en horizontal), mientras que el campo _lwd_ permite ajustar el grosor de la línea.
 
 3. Tras borrar el eje X con la función _par_, mediante la función _axis.Date_ establecemos el eje de abcisas (concretamente en formato fecha), obteniendo una secuencia de fechas en función del parámetro ( _saltos.eje.x_ ).
 
@@ -343,7 +343,7 @@ De la función anterior, quisiera destacar algunos detalles relevantes:
 
 5. Mediante la función _points_ marcamos los números de casos anteriores.
 
-6. Mediante la función _smooth.pline_ del paquete _stats_ se crea un gráfico "suavizado" con respecto a los datos originales, con el objetivo de visualizar (de forma más simplificada) la tendencia del número de casos a lo largo del gráfico.
+6. Mediante la función _smooth.spline_ del paquete _stats_ se crea un gráfico "suavizado" con respecto a los datos originales, con el objetivo de visualizar (de forma más simplificada) la tendencia del número de casos a lo largo del gráfico.
 
 7. Por último, mediante la función _mtext_ establecemos el título del eje X.
 
@@ -378,15 +378,16 @@ tail(casos.por.columnas)
 
 Una vez agrupado el DataFrame, debemos representar gráficamente cada columna con un color diferente. Para ello, creamos una función denominada __imprimir_multiples_lineas__, que recibe como parámetros tanto el DataFrame a representar gráficamente, los valores del eje X (campo fecha), del eje Y (columnas con el número de casos); además de un vector con la paleta de colores para cada línea y el número de saltos a realizar en el eje X.
 
-En primer lugar, la función recupera la primera de las columnas pasadas como parámetro (num_casos) y establece el mismo gráfico que el del apartado anterior, llamando a la función __imprimir_grafica__ (sin imprimir los segmentos como en el apartado anterior). A continuación, mediante la función _mapply_ por cada pareja (columna, color) se añade una nueva línea al gráfico ( _line_ ), asociando su correspondiente color. Finalmente, por medio de la función _legend_ se muestra la leyenda en el gráfico, situándose en la parte superior:
+En primer lugar, la función recupera la primera de las columnas pasadas como parámetro (num_casos) y establece el mismo gráfico que el del apartado anterior, llamando a la función __imprimir_grafica__ (sin imprimir los segmentos como en el apartado anterior). A continuación, mediante la función _matlines_, disponible en el paquete _graphics_, representamos gráficamente cada columna restante del DataFrame, asociando su correspondiente color (en lugar de realizar un _apply_ con la función _lines_ por cada columna). Finalmente, por medio de la función _legend_ se muestra la leyenda en el gráfico, situándose en la parte superior:
 
 ```{r imprimir_multiples_lineas}
 imprimir_multiples_lineas <- function(datos, eje.x, eje.y, paleta, saltos.eje.x) {
   imprimir_grafica(datos, eje.x, eje.y[1], saltos.eje.x, paleta[1])
   
-  mapply(FUN = function(x, y) { 
-    lines(datos[, eje.x], datos[, x], col = y, lwd = 2)
-  }, eje.y, paleta)
+  # equivalente a apply(lines())
+  matlines(datos[, eje.x], datos[, eje.y[2:length(eje.y)]],
+          col = paleta[2:length(paleta)],
+          type = 'l', lty = 1, lwd = 1.5)
   
   eje.y <- lapply(gsub('_', ' ', eje.y), toupper)
   legend(x= "top",  legend = eje.y, fill = paleta, cex = 0.7, text.font = 2, bg = 'white') 
@@ -404,7 +405,7 @@ paleta <- c("red", "blue", "orange", "darkgreen", "purple")
 imprimir_multiples_lineas(casos.por.columnas, "fecha", columnas, paleta, 14)
 ```
 
-Analizando la gráfica resultante podemos comprobar cómo desde el comienzo de la pandemia la mayoría de los casos por COVID-19 son diagnosticados por pruebas PCR. Por el contrario, otras pruebas como los Anti-cuerpos, "Otras" o "Desconocida" apenas se emplearon en la Comunidad Autónoma, salvo casos excepcionales.
+Analizando la gráfica resultante podemos comprobar cómo desde el comienzo de la pandemia la mayoría de los casos por COVID-19 son diagnosticados por pruebas PCR, dado que la línea "azul" con las pruebas diagnosticadas por PCR "solapa" al gráfico rojo con el número de casos. Por el contrario, otras pruebas como los Anti-cuerpos, "Otras" o "Desconocida" apenas se emplearon en la Comunidad Autónoma, salvo casos excepcionales.
 
 Para demostrar que cada columna se está mostrando correctamente, realizamos una pequeña prueba a nivel nacional, __con los datos de todas las CCAA__:
 
@@ -432,7 +433,9 @@ Sin embargo, dicha función no permite leer el contenido del archivo. Esto es de
 
 ![Contenido del fichero Punt.sas7bdat](formato_fichero.png)
 
-Esto último supone que las funciones base de R no nos permiten leer su contenido. Por ello, __y como único caso excepcional a lo largo de la práctica__, recurriremos a una librería externa denominada [_sas7bdat_ ( __Click para acceder al sitio web de CRAN__ )](https://cran.r-project.org/web/packages/sas7bdat/sas7bdat.pdf) . Para instalar el paquete, empleamos la función _install.packages_. Una vez instalado, debemos importarlo por medio de la función _library_ :
+Esto último supone que las funciones base de R no nos permiten leer su contenido. Por ello, __y como único caso excepcional a lo largo de la práctica__, recurriremos a una librería externa denominada _sas7bdat_ [^1]. Para instalar el paquete, empleamos la función _install.packages_. Una vez instalado, debemos importarlo por medio de la función _library_ :
+
+[^1]: [https://cran.r-project.org/web/packages/sas7bdat/sas7bdat.pdf](https://cran.r-project.org/web/packages/sas7bdat/sas7bdat.pdf)
 
 ```{r instalacion_paquete_sas7bdat, results = 'hide'}
 install.packages("sas7bdat", repos = "http://cran.us.r-project.org")
@@ -540,7 +543,11 @@ level500
 sapply(level500, class)
 ```
 
-Como podemos observar en la ejecución anterior, las columnas SUBJECT y LEVEL se codifican como _character_. 
+Como podemos observar en la ejecución anterior, las columnas SUBJECT y LEVEL se codifican como _character_. Como curiosidad, la función anterior nos servirá para filtrar en función de otros cursos. A modo de ejemplo, filtrando aquellos que acaben en 200:
+
+```{r prueba_dividir_columna_2}
+dividir_columna(punt, "200", "COURSE")
+```
 
 ## Apartado 5 
 __Escribe la información de level500 en un fichero ASCII de nombre "level500.dat".__
@@ -573,9 +580,9 @@ Cabe destacar que, a diferencia de los apartados anteriores, ya no disponemos de
 ## Apartado 1
 __Para la semana $S_7$, calcule el vector $(f_1, 1 - f_1, f_2, 1 - f_2, f_3, 1 - f_3, f_4, 1 - f_4)$ , donde $f_i$ es la frecuencia de la modalidad i (1,2,3,4) observada en la semana $S_7$ sobre los 16 sujetos. (Sugerencia: use las funciones tabulate(), cbind(), t() y as.vector())__
 
-En primer lugar, de cara al apartado 2), creamos una función denominada __calcular_vector_frecuencias__ que recibe como parámetro la columna directamente con sus puntuaciones, además del número total de puntuaciones (en nuestro caso 4). Inicialmente, mediante la función _tabulate_ obtenemos el número de repeticiones de cada puntuación en la columna pasada como parámetro. A continuación, una vez obtenido el número de repeticiones calculamos la frecuencia __relativa__ [^1] de cada uno, dividiéndolo entre la longitud de la columna __puntuaciones__. Por último, mediante la función _rbind_ (equivalente a t(cbind())) unimos los vectores de frecuencias (f, 1 - f), concatenando cada pareja. 
+En primer lugar, de cara al apartado 2), creamos una función denominada __calcular_vector_frecuencias__ que recibe como parámetro la columna directamente con sus puntuaciones, además del número total de puntuaciones (en nuestro caso 4). Inicialmente, mediante la función _tabulate_ obtenemos el número de repeticiones de cada puntuación en la columna pasada como parámetro. A continuación, una vez obtenido el número de repeticiones calculamos la frecuencia __relativa__ [^2] de cada uno, dividiéndolo entre la longitud de la columna __puntuaciones__. Por último, mediante la función _rbind_ (equivalente a t(cbind())) unimos los vectores de frecuencias (f, 1 - f), concatenando cada pareja. 
 
-[^1]: Para el ejercicio se ha trabajado con la frecuencia __relativa__ ($f_i$) aunque también puede emplearse la frecuencia absoluta ($n_i$), con la diferencia de que en lugar de restar $1 - f_i$ sería $16 - f_i$.
+[^2]: Para el ejercicio se ha trabajado con la frecuencia __relativa__ ($f_i$) aunque también puede emplearse la frecuencia absoluta ($n_i$).
 
 Sin embargo, puede ocurrir que una puntuación no aparezca en la columna (por ejemplo, en las semanas 1 y 3 solo aparece la puntuación 1), por lo que por cada puntuación faltante añadimos las parejas (0,1), es decir, la frecuencia de aparición es 0 y por tanto, 1 - f = 1.
 
@@ -602,6 +609,7 @@ __Ahora, use la función apply() para hacer el mismo cálculo para todas las dem
 Por medio de la función _apply_ aplicamos la función anterior a cada columna de la matriz, salvo la primera columna, que contiene los números de fila. Una vez aplicada la función, creamos un único vector a través de la función _unlist_ con el que obtener, a continuación, una matriz de 8 filas (parejas de frecuencias (f, 1 - f) x número de posibles puntuaciones = 2 x 4). Para facilitar su lectura, a cada nombre de columna le asignaremos el día de la semana, mientras que a cada fila le asignaremos la frecuencia de cada puntuación:
 
 ```{r apply_calcular_vector_frecuencias}
+# Puntuaciones.hidrogel[, -1]. NO contamos la primera columna
 matriz.frecuencias <- matrix(unlist(apply(
         puntuaciones.hidrogel[, -1], 2, calcular_vector_frecuencias, categorias = 4)),
         nrow = 8)
@@ -644,13 +652,13 @@ mostrar_frecuencias <- function(matriz, ancho, espacio, titulo) {
           space = espacio, xaxt = "n", yaxt = "n",
           ylab = "PUNTUACION", cex.lab = 1.25)
   
-  v <- Reduce(function(v, x) v + 2 * ancho / 2 + espacio, 
+  v <- Reduce(function(v, x) v + ancho + espacio, 
               x=numeric(length(colnames(matriz)) - 1),  
-              init=ancho / 2 + espacio, 
+              init=espacio + ancho/2, 
               accumulate=TRUE)
   axis(side = 3, at = v, colnames(matriz), col.axis = "blue", font = 2, tick = FALSE)
   
-  w <- Reduce(function(w, x) w + 2 * ancho / 2, 
+  w <- Reduce(function(w, x) w + ancho, 
               x=numeric(length(row.names(matriz)) / 2 - 1),
               init=ancho / 2, 
               accumulate=TRUE)
@@ -673,12 +681,12 @@ barplot(matriz, col = c("red", "white"), width = ancho,
         ylab = "PUNTUACION", cex.lab = 1.25)
 ```
 
-2. __Los números de las semanas deben estar en azul y en la parte superior del gráfico en lugar del fondo__. Si nos fijamos en la función _barplot_ anterior, vemos que tanto el parámetro _xaxt_ como _yaxt_ están a "n", lo que significa que por el momento no se muestran los ejes. Esto es debido a que mediante la función _axis_ que ofrece el paquete _graphics_ es posible crear ejes de una forma mucho más personalizada. Por ello, para crear el eje X utilizamos dicha función, situándolo en la parte superior ( __side = 3__ ). Por otra parte, para denotar la posición en el eje X donde debe situarse cada número de semana, mediante la función _Reduce_ calculamos la distancia de separación entre cada conjunto de barras apiladas, en base al ancho y espacio establecidos por parámetro. Finalmente, coloreamos de azul el eje mediante el parámetro _col.axis_.
+2. __Los números de las semanas deben estar en azul y en la parte superior del gráfico en lugar del fondo__. Si nos fijamos en la función _barplot_ anterior, vemos que tanto el parámetro _xaxt_ como _yaxt_ están a "n", lo que significa que por el momento no se muestran los ejes. Esto es debido a que mediante la función _axis_ que ofrece el paquete _graphics_ es posible crear ejes de una forma mucho más personalizada. Por ello, para crear el eje X utilizamos dicha función, situándolo en la parte superior ( __side = 3__ ). Por otra parte, para denotar la posición en el eje X donde debe situarse cada número de semana, mediante la función _Reduce_ calculamos la distancia de separación entre cada semana en el eje, en base al ancho y espacio establecidos por parámetro. Finalmente, coloreamos de azul el eje mediante el parámetro _col.axis_.
 
 ```
-v <- Reduce(function(v, x) v + 2 * ancho / 2 + espacio, 
+v <- Reduce(function(v, x) v + ancho + espacio, 
               x=numeric(length(colnames(matriz)) - 1),  
-              init=ancho / 2 + espacio, 
+              init=espacio + ancho / 2, 
               accumulate=TRUE)
 axis(side = 3, at = v, colnames(matriz), col.axis = "blue", font = 2, tick = FALSE)
 ```
@@ -686,7 +694,7 @@ axis(side = 3, at = v, colnames(matriz), col.axis = "blue", font = 2, tick = FAL
 3. __Los números de modalidad deben estar a la izquierda, en azul. Agrega un título al gráfico__. De forma similar al eje X, mediante la función _axis_ creamos el eje Y ( __side = 2__ ). Para denotar la posición donde debe situarse cada modalidad, nuevamente mediante una función _Reduce_ calculamos la distancia de separación entre cada valor (dado que en el eje Y no existe separación entre barras, sólo se tiene en cuenta el ancho). Finalmente, mediante la función _title_ añadimos el título al gráfico, situándolo en la parte superior ( __line = 3__ ), así como una leyenda en la parte superior derecha:
 
 ```
-w <- Reduce(function(w, x) w + 2 * ancho / 2, 
+w <- Reduce(function(w, x) w + ancho, 
               x=numeric(length(row.names(matriz)) / 2 - 1),
               init=ancho / 2, 
               accumulate=TRUE)
@@ -702,6 +710,7 @@ legend(x= "topright",  legend = c("FREC. ARDOR", "FREC. SIN ARDOR"),
 Si nos fijamos en la función _axis_ podemos observar que, del conjunto de nombres de fila que previamente hemos asociado a la matriz:
 
 $$(1, 1 - f_1, 2, 1 - f_2, 3, 1 - f_3, 4, 1 - f_4)$$
+
 Sólo extraemos aquellos situados en las posiciones impares, esto es, __los números de modalidad__:
 
 ```
