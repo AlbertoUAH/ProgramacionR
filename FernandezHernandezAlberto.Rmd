@@ -576,7 +576,7 @@ __Para la semana $S_7$, calcule el vector $(f_1, 1 - f_1, f_2, 1 - f_2, f_3, 1 -
 
 En primer lugar, de cara al apartado 2), creamos una función denominada __calcular_vector_frecuencias__ que recibe como parámetro la columna directamente con sus puntuaciones, además del número total de puntuaciones (en nuestro caso 4). Inicialmente, mediante la función _tabulate_ obtenemos el número de repeticiones de cada puntuación en la columna pasada como parámetro. A continuación, una vez obtenido el número de repeticiones calculamos la frecuencia __relativa__ [^1] de cada uno, dividiéndolo entre la longitud de la columna __puntuaciones__. Por último, mediante la función _rbind_ (equivalente a t(cbind())) unimos los vectores de frecuencias (f, 1 - f), concatenando cada pareja. 
 
-[^1]: Para el ejercicio se ha trabajado con la frecuencia __relativa__ ($f_i$) aunque también puede emplearse la frecuencia absoluta.
+[^1]: Para el ejercicio se ha trabajado con la frecuencia __relativa__ ($f_i$) aunque también puede emplearse la frecuencia absoluta ($n_i$), con la diferencia de que en lugar de restar $1 - f_i$ sería $16 - f_i$.
 
 Sin embargo, puede ocurrir que una puntuación no aparezca en la columna (por ejemplo, en las semanas 1 y 3 solo aparece la puntuación 1), por lo que por cada puntuación faltante añadimos las parejas (0,1), es decir, la frecuencia de aparición es 0 y por tanto, 1 - f = 1.
 
@@ -636,10 +636,10 @@ A través del gráfico anterior, podemos comprobar como, con el transcurso de la
 ## Apartado 4
 __Cambie el gráfico anterior para que las barras que representan las frecuencias estén en rojo. Los números de las semanas deben estar en azul y en la parte superior del gráfico en lugar del fondo. Los números de modalidad deben estar a la izquierda, en azul. Agrega un título al gráfico.__
 
-Para resolver este apartado creamos una función denominada __mostrar_frecuencias__, que recibe como parámetros, además de la matriz, el ancho de cada conjunto de barras apiladas, así como el espacio entre cada una:
+Para resolver este apartado creamos una función denominada __mostrar_frecuencias__, que recibe como parámetros, además de la matriz, el ancho de cada conjunto de barras apiladas, así como el espacio entre cada una y el título del gráfico:
 
 ```{r mostrar_frecuencias}
-mostrar_frecuencias <- function(matriz, ancho, espacio) {
+mostrar_frecuencias <- function(matriz, ancho, espacio, titulo) {
   par(xpd = TRUE, mar = c(0,4,5,6))
   barplot(matriz.frecuencias, col = c("red", "white"), width = ancho, 
           space = espacio, xaxt = "n", yaxt = "n",
@@ -658,7 +658,7 @@ mostrar_frecuencias <- function(matriz, ancho, espacio) {
   axis(side = 2, at = w, row.names(matriz)[seq(1,length(row.names(matriz)),2)], 
        col.axis = "blue", cex = 125, font = 2, tick = FALSE)
   
-  title("FRECUENCIAS DE ARDOR DE HIDROGEL - SEMANAS 1 A LA 7", line = 4, cex.main = 1.25)
+  title(titulo, line = 4, cex.main = 1.25)
   legend(x= "topright",  legend = c("FREC. ARDOR", "FREC. SIN ARDOR"), 
          inset = c(-0.2, 0), fill = c("red", "white"), 
          cex = 0.6, text.font = 2, bg = 'white') 
@@ -684,7 +684,7 @@ v <- Reduce(function(v, x) v + 2 * ancho / 2 + espacio, x=numeric(longitud),
 axis(side = 3, at = v, colnames(matriz), col.axis = "blue", font = 2, tick = FALSE)
 ```
 
-3. __Los números de modalidad deben estar a la izquierda, en azul. Agrega un título al gráfico__. De forma similar al eje X, mediante la función _axis_ creamos el eje Y ( __side = 2__ ). Para denotar la posición donde debe situarse cada modalidad, nuevamente mediante una función _Reduce_ calculamos la distancia de separación entre cada valor (dado que en el eje Y no existe separación entre barras, sólo se tiene en cuenta el ancho). Finalmente, mediante la función _title_ añadimos un título al gráfico, situándolo en la parte superior ( __line = 3__ ), así como una leyenda en la parte superior derecha:
+3. __Los números de modalidad deben estar a la izquierda, en azul. Agrega un título al gráfico__. De forma similar al eje X, mediante la función _axis_ creamos el eje Y ( __side = 2__ ). Para denotar la posición donde debe situarse cada modalidad, nuevamente mediante una función _Reduce_ calculamos la distancia de separación entre cada valor (dado que en el eje Y no existe separación entre barras, sólo se tiene en cuenta el ancho). Finalmente, mediante la función _title_ añadimos el título al gráfico, situándolo en la parte superior ( __line = 3__ ), así como una leyenda en la parte superior derecha:
 
 ```
 pos_inicial_2 <- ancho / 2
@@ -694,7 +694,7 @@ w <- Reduce(function(w, x) w + 2 * pos_inicial_2, x=numeric(longitud_2),
 axis(side = 2, at = w, row.names(matriz)[seq(1,length(row.names(matriz)),2)], 
      col.axis = "blue", cex = 125, font = 2, tick = FALSE)
 
-title("FRECUENCIAS DE ARDOR DE HIDROGEL - SEMANAS 1 A LA 7", line = 4, cex.main = 1.25)
+title(titulo, line = 4, cex.main = 1.25)
 legend(x= "topright",  legend = c("FREC. ARDOR", "FREC. SIN ARDOR"), 
        inset = c(-0.2, 0), fill = c("red", "white"), 
        cex = 0.6, text.font = 2, bg = 'white')
@@ -712,5 +712,6 @@ row.names(matriz)[seq(1,length(row.names(matriz)),2)]
 Una vez creada la función, realizamos la prueba final, empleando como ancho de barra 1 y espacio 0.2 entre barra y barra (eje X):
 
 ```{r prueba_mostrar_frecuencias, fig.width=7, fig.height=6, fig.cap="Gráfico de barras con la evolución de sensación de ardor con el tiempo (II)"}
-mostrar_frecuencias(matriz.frecuencias, 1, 0.2)
+mostrar_frecuencias(matriz.frecuencias, 1, 0.2, 
+"FRECUENCIAS DE ARDOR DE HIDROGEL - SEMANAS 1 A LA 7")
 ```

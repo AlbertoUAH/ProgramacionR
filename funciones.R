@@ -301,7 +301,7 @@ legend(x= "topright",  legend = c("FREC. ARDOR", "FREC. SIN ARDOR"),
        cex = 0.6, text.font = 2, bg = 'white')
 
 # Apartado 4
-mostrar_frecuencias <- function(matriz, ancho, espacio) {
+mostrar_frecuencias <- function(matriz, ancho, espacio, titulo) {
   par(xpd = TRUE, mar = c(0,4,5,6))
   barplot(matriz.frecuencias, col = c("red", "white"), width = ancho, 
           space = espacio, xaxt = "n", yaxt = "n",
@@ -320,10 +320,10 @@ mostrar_frecuencias <- function(matriz, ancho, espacio) {
   axis(side = 2, at = w, row.names(matriz)[seq(1,length(row.names(matriz)),2)], 
        col.axis = "blue", cex = 125, font = 2, tick = FALSE)
   
-  title("FRECUENCIAS DE ARDOR DE HIDROGEL - SEMANAS 1 A LA 7", line = 4, cex.main = 1.25)
+  title(titulo, line = 4, cex.main = 1.25)
   legend(x= "topright",  legend = c("FREC. ARDOR", "FREC. SIN ARDOR"), 
          inset = c(-0.2, 0), fill = c("red", "white"), 
          cex = 0.6, text.font = 2, bg = 'white') 
 }
 # Prueba mostrar_frecuencias
-mostrar_frecuencias(matriz.frecuencias, 1, 0.2)
+mostrar_frecuencias(matriz.frecuencias, 1, 0.2, "FRECUENCIAS DE ARDOR DE HIDROGEL - SEMANAS 1 A LA 7")
