@@ -93,7 +93,7 @@ lapply(unique(datos.ccaa[, "Comunidad.Autonoma"]), function(x) {
 })
 # Almacenamos los datos de provincias con el codigo de la CC.AA
 # DESCOMENTAR para ejecutar
-# write.csv(datos.ccaa[c("Comunidad.Autonoma", colnames(datos.provincias))],"datos_provincias.csv", row.names = FALSE)
+write.csv(datos.ccaa[c("Comunidad.Autonoma", colnames(datos.provincias))],"datos_provincias_aux.csv", row.names = FALSE)
 
 # Apartado 2
 # De forma previa, eliminamos las columnas Nombre.de.la.subdivision.en.la.ISO1 y Nombre.Comunidad

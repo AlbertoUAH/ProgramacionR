@@ -690,8 +690,7 @@ matriz.frecuencias <- matrix(unlist(apply(
         nrow = 8)
 
 rownames(matriz.frecuencias) <- c("1", "1-f1", "2", "1-f2", "3", "1-f3", "4", "1-f4")
-colnames(matriz.frecuencias) <- c("S1", "S2", "S3", 
-                                  "S4", "S5", "S6", "S7")
+colnames(matriz.frecuencias) <- c("S1", "S2", "S3", "S4", "S5", "S6", "S7")
 
 # Comprobamos que se trata, efectivamente, de una matriz
 class(matriz.frecuencias)
@@ -712,6 +711,8 @@ legend(x= "topright",  legend = c("FREC. ARDOR", "FREC. SIN ARDOR"),
        inset = c(-0.3, 0), fill = c("black", "white"), 
        cex = 0.6, text.font = 2, bg = 'white') 
 ```
+
+\newpage
 
 A través del gráfico anterior, podemos comprobar como, con el transcurso de las semanas, la sensación de ardor al emplear el hidrogel aumenta, concretamente a partir de la cuarta semana, donde aproximadamente una cuarta parte de los usuarios aumentaron su puntuación a 2 y 3.
 
